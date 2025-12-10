@@ -1,0 +1,13 @@
+{
+  "extends": "../../packages/config/typescript/tsconfig.react.json",
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "exactOptionalPropertyTypes": false,
+    "types": ["vite/client"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

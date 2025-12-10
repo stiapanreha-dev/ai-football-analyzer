@@ -1,0 +1,69 @@
+import type { Messages } from './ru.js';
+
+export const en: Messages = {
+  welcome: '🎯 Welcome to Football Archetypes!\n\nThis is a psychological test for football players. I will describe game situations and you will tell me how you would act.',
+  help: '📖 Commands:\n/start - Start over\n/language - Change language\n/cancel - Cancel current action\n/help - Show help',
+  cancel: '❌ Action cancelled.',
+  languageChanged: '✅ Language changed to English.',
+
+  pin: {
+    request: '🔐 Enter your PIN code to access the test:',
+    invalid: '❌ Invalid PIN code. Please try again.',
+    invalidFormat: '⚠️ PIN code must be 6 digits.',
+    expired: '⏰ PIN code has expired.',
+    exhausted: '📊 PIN code has been used the maximum number of times.',
+    inactive: '🚫 PIN code is inactive.',
+    attemptsLeft: (n: number) => `Attempts left: ${n}`,
+    tooManyAttempts: '🚫 Too many attempts. Please contact your coach for a new PIN code.',
+  },
+
+  registration: {
+    askName: '👤 What is your name? Enter your name:',
+    askPosition: '⚽ Select your position:',
+    positions: {
+      goalkeeper: '🧤 Goalkeeper',
+      defender: '🛡️ Defender',
+      midfielder: '⚡ Midfielder',
+      forward: '⚽ Forward',
+    },
+    complete: '✅ Great! Registration complete.',
+    welcomeBack: (name: string) => `👋 Welcome back, ${name}!`,
+  },
+
+  session: {
+    intro: '🎯 I will describe a game situation. Reply with a voice message explaining how you would act.\n\nSpeak naturally, as if explaining to a teammate.',
+    resuming: '🔄 You have an unfinished session. Continuing from where you left off.',
+    situationNumber: (n: number, total: number) => `📋 Situation ${n} of ${total}:`,
+    waitingAnswer: '🎤 Record a voice message with your answer...',
+    analyzing: '🤔 Analyzing your answer...',
+    clarification: '❓ Follow-up question:',
+    waitingClarification: '🎤 Answer the follow-up question with a voice message...',
+    sessionComplete: '✅ Testing complete! Generating your report...',
+    sessionAbandoned: '⏹️ Session cancelled.',
+  },
+
+  result: {
+    title: '📊 Your test results:',
+    archetype: (name: string, score: number) => `${name}: ${score.toFixed(1)}/10`,
+    summary: '📝 Your profile:',
+    thankYou: '🙏 Thank you for participating in the test!',
+  },
+
+  errors: {
+    general: '😔 An error occurred. Please try again later or restart with /start',
+    notAuthorized: '🔐 Please enter your PIN code to access the test.',
+    voiceTooShort: '⚠️ Voice message is too short. Please explain in more detail.',
+    voiceTooLong: '⚠️ Voice message is too long. Please keep it under 2 minutes.',
+    textNotAllowed: '🎤 Please send a voice message instead of text.',
+    transcriptionFailed: '😔 Could not recognize voice. Please try recording again.',
+    noActiveSession: '⚠️ You have no active session. Start testing with /start',
+    answerIrrelevant: '⚠️ Your answer is not related to the described situation. Please answer the question again.',
+  },
+
+  keyboards: {
+    startTest: '🎯 Start Test',
+    changeLanguage: '🌐 Change Language',
+    cancel: '❌ Cancel',
+    skip: '⏭️ Skip',
+  },
+};

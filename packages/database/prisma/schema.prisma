@@ -1,0 +1,280 @@
+// =============================================================================
+// Prisma Schema - Football Archetypes
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator zod {
+  provider                  = "zod-prisma-types"
+  output                    = "../src/generated/zod"
+  createModelTypes          = true
+  createInputTypes          = true
+  addInputTypeValidation    = true
+  addIncludeType            = true
+  addSelectType             = true
+  validateWhereUniqueInput  = true
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum PlayerPosition {
+  goalkeeper
+  defender
+  midfielder
+  forward
+}
+
+enum SessionStatus {
+  created
+  in_progress
+  clarifying
+  completed
+  abandoned
+}
+
+enum SessionPhase {
+  intro
+  situation
+  waiting_answer
+  analyzing
+  clarification
+  generating_report
+}
+
+enum AnswerType {
+  main
+  clarification
+}
+
+enum PinType {
+  single   // одноразовый
+  multi    // многоразовый (N использований)
+  session  // по времени (X часов)
+  personal // именной (одноразовый с данными игрока)
+}
+
+enum StrengthLevel {
+  dominant  // >= 8
+  moderate  // 5-7.9
+  weak      // 2-4.9
+  absent    // < 2
+}
+
+enum SituationContext {
+  pressure   // давление
+  conflict   // конфликт
+  leadership // лидерство
+  tactical   // тактика
+  emotional  // эмоции
+  failure    // неудача
+}
+
+// =============================================================================
+// MODELS
+// =============================================================================
+
+/// Игрок - футболист, проходящий тестирование
+model Player {
+  id           Int             @id @default(autoincrement())
+  telegramId   BigInt          @unique @map("telegram_id")
+  name         String?
+  position     PlayerPosition?
+  jerseyNumber Int?            @map("jersey_number")
+  createdAt    DateTime        @default(now()) @map("created_at")
+
+  sessions  Session[]
+  pinUsages PinUsage[]
+  auditLogs AuditLog[]
+
+  @@map("players")
+}
+
+/// Архетип - один из 7 поведенческих типов
+model Archetype {
+  id              Int    @id @default(autoincrement())
+  code            String @unique
+  name            String
+  description     String
+  behaviorExample String @map("behavior_example")
+  orderNum        Int    @map("order_num")
+
+  answerScores   AnswerScore[]
+  sessionResults SessionResult[]
+  targetAnswers  Answer[]        @relation("TargetArchetype")
+
+  @@map("archetypes")
+}
+
+/// Пин-код доступа для игроков
+model AccessPin {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  type        PinType   @default(single)
+  maxUses     Int       @default(1) @map("max_uses")
+  currentUses Int       @default(0) @map("current_uses")
+  expiresAt   DateTime? @map("expires_at")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Поля для именного PIN (type = personal)
+  playerName         String?         @map("player_name")
+  playerPosition     PlayerPosition? @map("player_position")
+  playerJerseyNumber Int?            @map("player_jersey_number")
+
+  usages PinUsage[]
+
+  @@map("access_pins")
+}
+
+/// История использования пин-кодов
+model PinUsage {
+  id        Int      @id @default(autoincrement())
+  pinId     Int      @map("pin_id")
+  playerId  Int      @map("player_id")
+  sessionId String?  @map("session_id")
+  usedAt    DateTime @default(now()) @map("used_at")
+
+  pin     AccessPin @relation(fields: [pinId], references: [id])
+  player  Player    @relation(fields: [playerId], references: [id])
+  session Session?  @relation(fields: [sessionId], references: [id])
+
+  @@map("pin_usages")
+}
+
+/// Сессия тестирования игрока
+model Session {
+  id                String        @id @default(uuid())
+  playerId          Int           @map("player_id")
+  language          String        @default("ru")
+  status            SessionStatus @default(created)
+  phase             SessionPhase?
+  situationIndex    Int           @default(0) @map("situation_index")
+  pendingArchetypes Int[]         @default([]) @map("pending_archetypes")
+  startedAt         DateTime?     @map("started_at")
+  completedAt       DateTime?     @map("completed_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+
+  player     Player          @relation(fields: [playerId], references: [id])
+  situations Situation[]
+  results    SessionResult[]
+  report     Report?
+  pinUsages  PinUsage[]
+
+  @@map("sessions")
+}
+
+/// Игровая ситуация в рамках сессии
+model Situation {
+  id          Int              @id @default(autoincrement())
+  sessionId   String           @map("session_id")
+  orderNum    Int              @map("order_num")
+  content     String
+  contextType SituationContext @map("context_type")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  session Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@unique([sessionId, orderNum])
+  @@map("situations")
+}
+
+/// Ответ игрока на ситуацию
+model Answer {
+  id                Int        @id @default(autoincrement())
+  situationId       Int        @map("situation_id")
+  type              AnswerType @default(main)
+  targetArchetypeId Int?       @map("target_archetype_id")
+  text              String
+  analysisJson      Json?      @map("analysis_json")
+  createdAt         DateTime   @default(now()) @map("created_at")
+
+  situation       Situation     @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  targetArchetype Archetype?    @relation("TargetArchetype", fields: [targetArchetypeId], references: [id])
+  scores          AnswerScore[]
+
+  @@map("answers")
+}
+
+/// Оценка ответа по конкретному архетипу
+model AnswerScore {
+  id          Int   @id @default(autoincrement())
+  answerId    Int   @map("answer_id")
+  archetypeId Int   @map("archetype_id")
+  score       Float
+  confidence  Float
+
+  answer    Answer    @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  archetype Archetype @relation(fields: [archetypeId], references: [id])
+
+  @@unique([answerId, archetypeId])
+  @@map("answer_scores")
+}
+
+/// Итоговый результат сессии по архетипу
+model SessionResult {
+  id          Int           @id @default(autoincrement())
+  sessionId   String        @map("session_id")
+  archetypeId Int           @map("archetype_id")
+  finalScore  Float         @map("final_score")
+  strength    StrengthLevel
+
+  session   Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  archetype Archetype @relation(fields: [archetypeId], references: [id])
+
+  @@unique([sessionId, archetypeId])
+  @@map("session_results")
+}
+
+/// Отчёт по результатам сессии
+model Report {
+  id            Int      @id @default(autoincrement())
+  sessionId     String   @unique @map("session_id")
+  playerSummary String   @map("player_summary")
+  coachReport   Json     @map("coach_report")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+/// Системные настройки (key-value)
+model Settings {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+/// Аудит-лог действий в системе
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  timestamp  DateTime @default(now())
+  source     String   // bot, backend, admin
+  action     String   // start_command, pin_entered, pin_validated, session_started, etc.
+  telegramId BigInt?  @map("telegram_id")
+  playerId   Int?     @map("player_id")
+  sessionId  String?  @map("session_id")
+  data       Json?    // Дополнительные данные (входные параметры, результат, ошибка)
+  success    Boolean  @default(true)
+  errorMsg   String?  @map("error_msg")
+
+  player Player? @relation(fields: [playerId], references: [id])
+
+  @@index([timestamp])
+  @@index([telegramId])
+  @@index([playerId])
+  @@index([action])
+  @@map("audit_logs")
+}

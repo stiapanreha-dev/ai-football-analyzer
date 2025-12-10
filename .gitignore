@@ -2,33 +2,23 @@
 docs/
 CLAUDE.md
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+# Dependencies
+node_modules/
 
-# Virtual environments
-venv/
-ENV/
-env/
-.venv/
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Turbo
+.turbo/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+!.env.example
 
 # IDE
 .idea/
@@ -48,6 +38,26 @@ s3_credentials.json
 
 # Logs
 *.log
+logs/
+
+# Testing
+coverage/
+.nyc_output/
 
 # Generated files
 *.pdf
+packages/database/src/generated/
+
+# Prisma
+packages/database/prisma/migrations/*.sql.bak
+
+# Python (legacy)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
