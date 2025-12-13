@@ -53,7 +53,7 @@ export const submitAnswerSchema = z.object({
 });
 
 export const submitClarificationSchema = z.object({
-  archetypeId: z.number().int().positive(),
+  archetypeCode: z.enum(['leader', 'warrior', 'strategist', 'diplomat', 'executor', 'individualist', 'avoider']),
   text: z.string().min(5, 'Clarification must be at least 5 characters'),
 });
 

@@ -109,11 +109,11 @@ export const api = {
 
   async submitClarification(
     sessionId: string,
-    archetypeId: number,
+    archetypeCode: string,
     text: string
   ): Promise<SubmitAnswerResultDto> {
     return request('POST', `/sessions/${sessionId}/clarification`, {
-      archetypeId,
+      archetypeCode,
       text,
     });
   },

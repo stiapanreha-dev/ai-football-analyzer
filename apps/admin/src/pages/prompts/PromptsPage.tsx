@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Tab, Tabs, Form, Button, Alert, Spinner, Badge } from 'react-bootstrap';
-import type { PromptKey, PromptDto } from '@archetypes/shared';
+import type { PromptKey } from '@archetypes/shared';
 import { PROMPT_LABELS, PROMPT_PLACEHOLDERS } from '@archetypes/shared';
 
 import { usePrompts, useUpdatePrompt, useTestPrompt } from '@/features/prompts/hooks';

@@ -342,9 +342,10 @@ export async function sessionConversation(
       }
 
       // Отправляем уточнение
-      if (result!.clarificationArchetype) {
-        // TODO: Получить archetypeId по коду
-        // await api.submitClarification(session.id, archetypeId, clarificationText);
+      if (result!.clarificationArchetype && clarificationText) {
+        result = await conversation.external(() =>
+          api.submitClarification(session.id, result!.clarificationArchetype!, clarificationText!)
+        );
       }
     }
 
