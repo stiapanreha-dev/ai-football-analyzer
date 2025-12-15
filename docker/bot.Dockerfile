@@ -15,13 +15,14 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/apps/bot/node_modules ./apps/bot/node_modules
 COPY . .
-RUN pnpm --filter @archetypes/bot build
+RUN pnpm --filter @archetypes/shared build && pnpm --filter @archetypes/bot build
 
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY --from=builder /app/packages/shared/src ./packages/shared/src
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=builder /app/apps/bot/dist ./apps/bot/dist
 COPY --from=builder /app/apps/bot/package.json ./apps/bot/
 COPY --from=deps /app/node_modules ./node_modules
