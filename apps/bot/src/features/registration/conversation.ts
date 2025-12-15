@@ -61,11 +61,9 @@ export async function registrationConversation(
   );
 
   // Сохраняем данные через API
-  if (playerId) {
-    await conversation.external(() =>
-      api.updatePlayer(playerId, { name, position })
-    );
-  }
+  await conversation.external(() =>
+    api.updatePlayer(telegramId, { name, position })
+  );
 
   // Очищаем временные данные регистрации
   conversation.session.registration = undefined;

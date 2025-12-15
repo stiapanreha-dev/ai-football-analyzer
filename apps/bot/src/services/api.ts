@@ -80,10 +80,10 @@ export const api = {
   },
 
   async updatePlayer(
-    playerId: number,
+    telegramId: bigint,
     data: { name?: string; position?: string; jerseyNumber?: number }
   ): Promise<PlayerDto> {
-    return request('PATCH', `/players/${playerId}`, data);
+    return request('PATCH', `/players/telegram/${telegramId}`, data);
   },
 
   // Sessions

@@ -135,6 +135,30 @@ const playersRoutes: FastifyPluginAsync = async (fastify) => {
       });
     }
   );
+
+  // PATCH /players/telegram/:telegramId - Обновление игрока по Telegram ID (для бота)
+  fastify.patch<{
+    Params: { telegramId: string };
+    Reply: ApiResponse<PlayerDto>;
+  }>(
+    '/telegram/:telegramId',
+    {
+      schema: {
+        tags: ['players'],
+        summary: 'Обновить данные игрока по Telegram ID (для бота)',
+      },
+    },
+    async (request, reply) => {
+      const { telegramId } = getPlayerByTelegramIdParamsSchema.parse(request.params);
+      const data = updatePlayerSchema.parse(request.body);
+      const player = await playerService.updateByTelegramId(telegramId, data);
+
+      return reply.send({
+        success: true,
+        data: player,
+      });
+    }
+  );
 };
 
 export default playersRoutes;

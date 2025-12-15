@@ -174,6 +174,30 @@ export class PlayerService {
   }
 
   /**
+   * Обновление игрока по Telegram ID (для бота)
+   */
+  async updateByTelegramId(telegramId: bigint, data: UpdatePlayerInput): Promise<PlayerDto> {
+    const player = await this.app.prisma.player.findUnique({
+      where: { telegramId },
+    });
+
+    if (!player) {
+      throw new NotFoundError('Player', `telegramId:${telegramId}`);
+    }
+
+    const updated = await this.app.prisma.player.update({
+      where: { telegramId },
+      data: {
+        name: data.name,
+        position: data.position,
+        jerseyNumber: data.jerseyNumber,
+      },
+    });
+
+    return this.toDto(updated);
+  }
+
+  /**
    * Получение сессий игрока
    */
   async getPlayerSessions(playerId: number): Promise<SessionDto[]> {
