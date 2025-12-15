@@ -38,7 +38,7 @@ export const en: Messages = {
     analyzing: '🤔 Analyzing your answer...',
     clarification: '❓ Follow-up question:',
     waitingClarification: '🎤 Answer the follow-up question with a voice message...',
-    sessionComplete: '✅ Testing complete! Generating your report...',
+    sessionComplete: '✅ Testing complete!',
     sessionAbandoned: '⏹️ Session cancelled.',
   },
 
@@ -46,7 +46,7 @@ export const en: Messages = {
     title: '📊 Your test results:',
     archetype: (name: string, score: number) => `${name}: ${score.toFixed(1)}/10`,
     summary: '📝 Your profile:',
-    thankYou: '🙏 Thank you for participating in the test!',
+    thankYou: '🙌 Great job! You did excellent in the test!\n\n📊 Results will be available to your coach. Discuss them at your next meeting.',
   },
 
   errors: {

@@ -8,7 +8,6 @@ import { api } from '../../services/api.js';
 import { audit, AuditAction } from '../../services/audit.js';
 import { processVoiceMessage } from '../../services/voice.js';
 import { createMainKeyboard } from '../start/keyboards.js';
-import { formatResult } from '../result/formatters.js';
 
 export async function sessionConversation(
   conversation: Conversation<MyContext>,
@@ -386,31 +385,6 @@ export async function sessionConversation(
   );
 
   await ctx.reply(messages.session.sessionComplete);
-
-  // Получаем и показываем результат
-  let sessionResult;
-  try {
-    sessionResult = await conversation.external(() => api.getSessionResult(session.id));
-  } catch (error) {
-    await conversation.external(() =>
-      audit.log({
-        action: AuditAction.ERROR,
-        telegramId,
-        playerId,
-        sessionId: session.id,
-        success: false,
-        errorMsg: `Failed to get session result: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      })
-    );
-    // Продолжаем без результатов
-    sessionResult = null;
-  }
-
-  if (sessionResult) {
-    const resultText = formatResult(sessionResult, messages);
-    await ctx.reply(resultText, { parse_mode: 'HTML' });
-  }
-
   await ctx.reply(messages.result.thankYou);
   conversation.session.sessionId = undefined;
 
