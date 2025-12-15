@@ -57,6 +57,20 @@ export const submitClarificationSchema = z.object({
   text: z.string().min(5, 'Clarification must be at least 5 characters'),
 });
 
+export const archetypeCodeSchema = z.enum([
+  'leader',
+  'warrior',
+  'strategist',
+  'diplomat',
+  'executor',
+  'individualist',
+  'avoider',
+]);
+
+export const getAlternativeResponseSchema = z.object({
+  archetypeCode: archetypeCodeSchema,
+});
+
 export const voiceMessageSchema = z.object({
   duration: z
     .number()
@@ -74,4 +88,5 @@ export type GetSessionParams = z.infer<typeof getSessionParamsSchema>;
 export type GetSessionsQuery = z.infer<typeof getSessionsQuerySchema>;
 export type SubmitAnswerInput = z.infer<typeof submitAnswerSchema>;
 export type SubmitClarificationInput = z.infer<typeof submitClarificationSchema>;
+export type GetAlternativeResponseInput = z.infer<typeof getAlternativeResponseSchema>;
 export type VoiceMessageInput = z.infer<typeof voiceMessageSchema>;

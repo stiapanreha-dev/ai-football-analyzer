@@ -3,9 +3,9 @@
  */
 
 // Сессия тестирования
-export const MIN_SITUATIONS = 4;
-export const MAX_SITUATIONS = 6;
-export const CLARIFICATION_THRESHOLD = 3.0; // Порог для уточняющих вопросов
+export const MIN_SITUATIONS = 3;
+export const MAX_SITUATIONS = 3;
+export const TOP_DOMINANT_ARCHETYPES = 2; // Количество доминирующих архетипов для исключения из clarification
 
 // Голосовые сообщения
 export const VOICE_MIN_DURATION_SEC = 3;

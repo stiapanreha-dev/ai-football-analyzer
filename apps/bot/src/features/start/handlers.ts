@@ -33,13 +33,28 @@ export function setupStartHandlers(bot: Bot<MyContext>): void {
       }
     }
 
+    // Сохраняем флаг выбора языка перед сбросом
+    const languageWasSelected = ctx.session.languageSelected;
+    const savedLanguage = ctx.session.language;
+
     // Сбрасываем сессию
     ctx.session = initialSession();
 
-    const messages = t(ctx);
-    await ctx.reply(messages.welcome, {
-      reply_markup: createMainKeyboard(messages),
-    });
+    // Если язык был ранее выбран - восстанавливаем
+    if (languageWasSelected) {
+      ctx.session.language = savedLanguage;
+      ctx.session.languageSelected = true;
+
+      const messages = t(ctx);
+      await ctx.reply(messages.welcome, {
+        reply_markup: createMainKeyboard(messages),
+      });
+    } else {
+      // Первый запуск - показываем выбор языка
+      await ctx.reply('👋 Hello! Choose your language:', {
+        reply_markup: createLanguageKeyboard(),
+      });
+    }
   });
 
   // /help - помощь
@@ -112,21 +127,33 @@ export function setupStartHandlers(bot: Bot<MyContext>): void {
   // Callback: выбор языка
   bot.callbackQuery(/^lang_(.+)$/, async (ctx) => {
     const lang = ctx.match[1] as Language;
+    const isFirstSelection = !ctx.session.languageSelected;
+
     ctx.session.language = lang;
+    ctx.session.languageSelected = true;
 
     await audit.log({
       action: AuditAction.LANGUAGE_CHANGED,
       telegramId: getTelegramId(ctx),
       playerId: ctx.session.playerId,
-      data: { language: lang },
+      data: { language: lang, isFirstSelection },
     });
 
     await ctx.answerCallbackQuery();
 
     const messages = t(ctx);
-    await ctx.editMessageText(messages.languageChanged, {
-      reply_markup: createMainKeyboard(messages),
-    });
+
+    if (isFirstSelection) {
+      // Первый выбор языка - показываем приветствие
+      await ctx.editMessageText(messages.welcome, {
+        reply_markup: createMainKeyboard(messages),
+      });
+    } else {
+      // Смена языка - показываем подтверждение
+      await ctx.editMessageText(messages.languageChanged, {
+        reply_markup: createMainKeyboard(messages),
+      });
+    }
   });
 
   // Callback: продолжить flow (после PIN)

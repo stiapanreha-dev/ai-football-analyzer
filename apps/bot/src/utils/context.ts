@@ -12,6 +12,8 @@ export interface SessionData {
   playerId?: number | undefined;
   /** Выбранный язык */
   language: Language;
+  /** Язык был явно выбран пользователем */
+  languageSelected?: boolean | undefined;
   /** ID текущей сессии тестирования */
   sessionId?: string | undefined;
   /** Данные регистрации (временные) */

@@ -18,8 +18,6 @@ export interface AnalysisResult {
   reasoning: string;
   dominantArchetype: ArchetypeCode;
   weakestArchetype: ArchetypeCode;
-  needsClarification: boolean;
-  clarificationArchetype?: ArchetypeCode;
   isIrrelevant: boolean;
   irrelevantReason?: string;
 }
@@ -48,10 +46,8 @@ ${ARCHETYPE_DETAILS}
 ПРАВИЛА:
 1. Анализируй только содержание ответа, не домысливай
 2. Один ответ может показывать несколько архетипов
-3. Если ответ неоднозначный - отметь needsClarification: true
-4. Если архетип требует уточнения - укажи его в clarificationArchetype
-5. Если ответ НЕ относится к ситуации (другая тема, бессмыслица, тест микрофона, приветствие, просто слова/числа без смысла) - отметь isIrrelevant: true
-6. При isIrrelevant: true - выставь все скоры в 0 и укажи причину в irrelevantReason
+3. Если ответ НЕ относится к ситуации (другая тема, бессмыслица, тест микрофона, приветствие, просто слова/числа без смысла) - отметь isIrrelevant: true
+4. При isIrrelevant: true - выставь все скоры в 0 и укажи причину в irrelevantReason
 
 ФОРМАТ ОТВЕТА (строго JSON):
 {
@@ -67,8 +63,6 @@ ${ARCHETYPE_DETAILS}
   "reasoning": "краткое объяснение оценок на русском языке",
   "dominantArchetype": "код наиболее выраженного архетипа",
   "weakestArchetype": "код наименее выраженного архетипа",
-  "needsClarification": true/false,
-  "clarificationArchetype": "код архетипа для уточнения или null",
   "isIrrelevant": true/false,
   "irrelevantReason": "причина нерелевантности или null"
 }`;

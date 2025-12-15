@@ -1,15 +1,18 @@
 import type { FastifyInstance } from 'fastify';
-import type { Session, SessionStatus, Situation } from '@archetypes/database';
+import type { Session, SessionStatus, Situation, PlayerPosition } from '@archetypes/database';
 
 import type {
   SessionDto,
   SessionWithDetailsDto,
   SituationDto,
   SubmitAnswerResultDto,
+  SubmitClarificationResultDto,
+  AlternativeResponseDto,
   PaginatedResponse,
   Language,
   ArchetypeCode,
 } from '@archetypes/shared';
+import { MAX_SITUATIONS, TOP_DOMINANT_ARCHETYPES } from '@archetypes/shared';
 
 import {
   NotFoundError,
@@ -276,7 +279,7 @@ export class SessionService {
       return {
         answerId: 0,
         scores: analysis.scores,
-        needsClarification: false,
+        unpresentArchetypes: [],
         isSessionComplete: false,
         isIrrelevant: true,
         irrelevantReason: analysis.irrelevantReason,
@@ -303,77 +306,105 @@ export class SessionService {
         answerId: answer.id,
         archetypeId: archetypeMap.get(code)!,
         score,
-        confidence: 1.0, // Можно добавить в анализ
+        confidence: 1.0,
       })),
     });
 
-    // Определяем, нужно ли продолжать или завершать сессию
-    const nextSituationIndex = session.situationIndex + 1;
-    const minSituations = 4; // MIN_SITUATIONS из shared
-    const maxSituations = 6; // MAX_SITUATIONS из shared
+    // Определяем доминирующие архетипы (топ N по score) и непроявленные
+    const sortedScores = Object.entries(analysis.scores)
+      .sort(([, a], [, b]) => b - a);
+    const unpresentArchetypes = sortedScores
+      .slice(TOP_DOMINANT_ARCHETYPES)
+      .map(([code]) => code as ArchetypeCode);
 
-    // Логика завершения: либо достигли maxSituations, либо minSituations и нет нужды в уточнении
-    const shouldComplete =
-      nextSituationIndex >= maxSituations ||
-      (nextSituationIndex >= minSituations && !analysis.needsClarification);
+    // Сохраняем ID непроявленных архетипов в сессии для последующих clarification
+    const unpresentArchetypeIds = unpresentArchetypes
+      .map((code) => archetypeMap.get(code))
+      .filter((id): id is number => id !== undefined);
 
-    if (analysis.needsClarification && analysis.clarificationArchetype) {
-      // Генерируем уточняющий вопрос
-      const clarification = await this.llmService.generateClarification({
-        language: session.language as Language,
-        situation: currentSituation.content,
-        previousAnswer: text,
-        targetArchetype: analysis.clarificationArchetype,
-      });
-
-      // Получаем ID архетипа для сохранения в pendingArchetypes
-      const clarificationArchetypeId = archetypeMap.get(analysis.clarificationArchetype);
-
-      // Обновляем сессию
-      await this.app.prisma.session.update({
-        where: { id: sessionId },
-        data: {
-          status: 'clarifying',
-          phase: 'clarification',
-          pendingArchetypes: clarificationArchetypeId ? [clarificationArchetypeId] : [],
-        },
-      });
-
-      return {
-        answerId: answer.id,
-        scores: analysis.scores,
-        needsClarification: true,
-        clarificationQuestion: clarification,
-        clarificationArchetype: analysis.clarificationArchetype,
-        isSessionComplete: false,
-      };
-    }
-
-    // Переходим к следующей ситуации или завершаем
+    // Обновляем сессию - переходим в фазу clarification
     await this.app.prisma.session.update({
       where: { id: sessionId },
       data: {
-        situationIndex: nextSituationIndex,
-        phase: shouldComplete ? 'generating_report' : 'situation',
-        pendingArchetypes: [],
+        status: 'clarifying',
+        phase: 'clarification',
+        pendingArchetypes: unpresentArchetypeIds,
       },
     });
+
+    // Определяем, будет ли это последняя ситуация
+    const nextSituationIndex = session.situationIndex + 1;
+    const isSessionComplete = nextSituationIndex >= MAX_SITUATIONS;
 
     return {
       answerId: answer.id,
       scores: analysis.scores,
-      needsClarification: false,
-      isSessionComplete: shouldComplete,
+      unpresentArchetypes,
+      isSessionComplete,
     };
   }
 
   /**
-   * Отправка уточняющего ответа
+   * Получение альтернативного ответа от имени архетипа
+   */
+  async getAlternativeResponse(
+    sessionId: string,
+    archetypeCode: ArchetypeCode
+  ): Promise<AlternativeResponseDto> {
+    const session = await this.app.prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        player: true,
+      },
+    });
+
+    if (!session) {
+      throw new SessionNotFoundError(sessionId);
+    }
+
+    // Получаем текущую ситуацию
+    const currentSituation = await this.app.prisma.situation.findFirst({
+      where: {
+        sessionId,
+        orderNum: session.situationIndex,
+      },
+    });
+
+    if (!currentSituation) {
+      throw new SessionInvalidStateError(sessionId, 'has situation', 'no situation');
+    }
+
+    // Получаем архетип для названия
+    const archetype = await this.app.prisma.archetype.findFirst({
+      where: { code: archetypeCode },
+    });
+
+    if (!archetype) {
+      throw new ValidationError(`Unknown archetype code: ${archetypeCode}`);
+    }
+
+    // Генерируем альтернативный ответ через LLM
+    const alternativeResponse = await this.llmService.generateAlternativeResponse({
+      language: session.language as Language,
+      situation: currentSituation.content,
+      targetArchetype: archetypeCode,
+      playerPosition: session.player.position as PlayerPosition | undefined,
+    });
+
+    return {
+      alternativeResponse,
+      archetypeCode,
+      archetypeName: archetype.name,
+    };
+  }
+
+  /**
+   * Отправка уточняющего ответа (комментарий к альтернативному ответу)
    */
   async submitClarification(
     sessionId: string,
     data: SubmitClarificationInput
-  ): Promise<SubmitAnswerResultDto> {
+  ): Promise<SubmitClarificationResultDto> {
     const session = await this.app.prisma.session.findUnique({
       where: { id: sessionId },
     });
@@ -392,26 +423,13 @@ export class SessionService {
         sessionId,
         orderNum: session.situationIndex,
       },
-      include: {
-        answers: {
-          where: { type: 'main' },
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-        },
-      },
     });
 
     if (!currentSituation) {
       throw new SessionInvalidStateError(sessionId, 'has situation', 'no situation');
     }
 
-    const previousAnswer = currentSituation.answers[0];
-    if (!previousAnswer) {
-      throw new SessionInvalidStateError(sessionId, 'has previous answer', 'no previous answer');
-    }
-
-    // Анализируем уточняющий ответ через LLM
-    // Контекст: оригинальная ситуация + уточняющий ответ
+    // Анализируем комментарий через LLM
     const analysis = await this.llmService.analyzeAnswer(currentSituation.content, data.text);
 
     // Получаем архетипы для маппинга кода -> ID
@@ -445,32 +463,39 @@ export class SessionService {
       })),
     });
 
-    // Определяем, нужно ли продолжать или завершать сессию
-    const nextSituationIndex = session.situationIndex + 1;
-    const minSituations = 4;
-    const maxSituations = 6;
+    return {
+      answerId: answer.id,
+      scores: analysis.scores,
+    };
+  }
 
-    const shouldComplete =
-      nextSituationIndex >= maxSituations ||
-      (nextSituationIndex >= minSituations && !analysis.needsClarification);
+  /**
+   * Переход к следующей ситуации после всех clarification
+   */
+  async nextSituation(sessionId: string): Promise<{ isSessionComplete: boolean }> {
+    const session = await this.app.prisma.session.findUnique({
+      where: { id: sessionId },
+    });
+
+    if (!session) {
+      throw new SessionNotFoundError(sessionId);
+    }
+
+    const nextSituationIndex = session.situationIndex + 1;
+    const isSessionComplete = nextSituationIndex >= MAX_SITUATIONS;
 
     // Обновляем сессию — переходим к следующей ситуации или завершаем
     await this.app.prisma.session.update({
       where: { id: sessionId },
       data: {
-        status: shouldComplete ? 'completed' : 'in_progress',
-        phase: shouldComplete ? 'generating_report' : 'situation',
+        status: isSessionComplete ? 'in_progress' : 'in_progress',
+        phase: isSessionComplete ? 'generating_report' : 'situation',
         situationIndex: nextSituationIndex,
         pendingArchetypes: [],
       },
     });
 
-    return {
-      answerId: answer.id,
-      scores: analysis.scores,
-      needsClarification: false,
-      isSessionComplete: shouldComplete,
-    };
+    return { isSessionComplete };
   }
 
   /**

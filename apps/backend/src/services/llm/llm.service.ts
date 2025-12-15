@@ -4,12 +4,14 @@ import {
   buildAnalysisPrompt,
   parseAnalysisResponse,
   buildClarificationPrompt,
+  buildAlternativeResponsePrompt,
   buildPlayerReportPrompt,
   buildCoachReportPrompt,
   parseCoachReportResponse,
   type SituationContext,
   type AnalysisResult,
   type ClarificationContext,
+  type AlternativeResponseContext,
   type ReportContext,
   type CoachReportResult,
 } from './prompts/index.js';
@@ -34,10 +36,19 @@ export class LlmService {
   }
 
   /**
-   * Генерация уточняющего вопроса
+   * Генерация уточняющего вопроса (deprecated, используйте generateAlternativeResponse)
    */
   async generateClarification(context: ClarificationContext): Promise<string> {
     const prompt = buildClarificationPrompt(context);
+    const response = await complete(prompt, { temperature: 0.7 });
+    return response.trim();
+  }
+
+  /**
+   * Генерация альтернативного ответа от имени архетипа
+   */
+  async generateAlternativeResponse(context: AlternativeResponseContext): Promise<string> {
+    const prompt = buildAlternativeResponsePrompt(context);
     const response = await complete(prompt, { temperature: 0.7 });
     return response.trim();
   }

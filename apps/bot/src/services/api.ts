@@ -6,6 +6,8 @@ import type {
   SessionDto,
   SituationDto,
   SubmitAnswerResultDto,
+  SubmitClarificationResultDto,
+  AlternativeResponseDto,
   SessionResultDto,
 } from '@archetypes/shared';
 
@@ -107,15 +109,26 @@ export const api = {
     return request('POST', `/sessions/${sessionId}/answer`, { text });
   },
 
+  async getAlternativeResponse(
+    sessionId: string,
+    archetypeCode: string
+  ): Promise<AlternativeResponseDto> {
+    return request('GET', `/sessions/${sessionId}/alternative/${archetypeCode}`);
+  },
+
   async submitClarification(
     sessionId: string,
     archetypeCode: string,
     text: string
-  ): Promise<SubmitAnswerResultDto> {
+  ): Promise<SubmitClarificationResultDto> {
     return request('POST', `/sessions/${sessionId}/clarification`, {
       archetypeCode,
       text,
     });
+  },
+
+  async nextSituation(sessionId: string): Promise<{ isSessionComplete: boolean }> {
+    return request('POST', `/sessions/${sessionId}/next-situation`);
   },
 
   async completeSession(sessionId: string): Promise<void> {

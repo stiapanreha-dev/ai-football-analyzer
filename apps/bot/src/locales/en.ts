@@ -40,6 +40,10 @@ export const en: Messages = {
     waitingClarification: '🎤 Answer the follow-up question with a voice message...',
     sessionComplete: '✅ Testing complete!',
     sessionAbandoned: '⏹️ Session cancelled.',
+    alternativeIntro: '💡 Another player in this situation would act like this:',
+    alternativeQuestion1: '🤔 Why doesn\'t this solution work for you?',
+    alternativeQuestion2: '🤔 What seems wrong or impractical about this?',
+    alternativeQuestion3: '🤔 Do you agree with this approach? Why?',
   },
 
   result: {

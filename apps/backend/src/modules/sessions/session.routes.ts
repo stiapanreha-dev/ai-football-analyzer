@@ -7,6 +7,8 @@ import type {
   SessionWithDetailsDto,
   SituationDto,
   SubmitAnswerResultDto,
+  SubmitClarificationResultDto,
+  AlternativeResponseDto,
 } from '@archetypes/shared';
 
 import {
@@ -15,6 +17,7 @@ import {
   getSessionsQuerySchema,
   submitAnswerSchema,
   submitClarificationSchema,
+  archetypeCodeSchema,
 } from './session.schemas.js';
 import { createSessionService } from './session.service.js';
 
@@ -162,22 +165,69 @@ const sessionsRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
+  // GET /sessions/:id/alternative/:archetypeCode - Альтернативный ответ от имени архетипа (для бота)
+  fastify.get<{
+    Params: { id: string; archetypeCode: string };
+    Reply: ApiResponse<AlternativeResponseDto>;
+  }>(
+    '/:id/alternative/:archetypeCode',
+    {
+      schema: {
+        tags: ['sessions'],
+        summary: 'Получить альтернативный ответ от имени архетипа (для бота)',
+      },
+    },
+    async (request, reply) => {
+      const { id } = getSessionParamsSchema.parse(request.params);
+      const { archetypeCode } = { archetypeCode: archetypeCodeSchema.parse(request.params.archetypeCode) };
+      const result = await sessionService.getAlternativeResponse(id, archetypeCode);
+
+      return reply.send({
+        success: true,
+        data: result,
+      });
+    }
+  );
+
   // POST /sessions/:id/clarification - Уточняющий ответ (для бота)
   fastify.post<{
     Params: { id: string };
-    Reply: ApiResponse<SubmitAnswerResultDto>;
+    Reply: ApiResponse<SubmitClarificationResultDto>;
   }>(
     '/:id/clarification',
     {
       schema: {
         tags: ['sessions'],
-        summary: 'Отправить уточняющий ответ (для бота)',
+        summary: 'Отправить комментарий к альтернативному ответу (для бота)',
       },
     },
     async (request, reply) => {
       const { id } = getSessionParamsSchema.parse(request.params);
       const data = submitClarificationSchema.parse(request.body);
       const result = await sessionService.submitClarification(id, data);
+
+      return reply.send({
+        success: true,
+        data: result,
+      });
+    }
+  );
+
+  // POST /sessions/:id/next-situation - Переход к следующей ситуации (для бота)
+  fastify.post<{
+    Params: { id: string };
+    Reply: ApiResponse<{ isSessionComplete: boolean }>;
+  }>(
+    '/:id/next-situation',
+    {
+      schema: {
+        tags: ['sessions'],
+        summary: 'Переход к следующей ситуации после всех clarification (для бота)',
+      },
+    },
+    async (request, reply) => {
+      const { id } = getSessionParamsSchema.parse(request.params);
+      const result = await sessionService.nextSituation(id);
 
       return reply.send({
         success: true,

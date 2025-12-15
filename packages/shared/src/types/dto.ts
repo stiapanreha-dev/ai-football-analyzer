@@ -140,18 +140,26 @@ export interface SubmitAnswerDto {
 export interface SubmitAnswerResultDto {
   answerId: number;
   scores: Record<ArchetypeCode, number>;
-  needsClarification: boolean;
-  clarificationArchetype?: ArchetypeCode;
-  clarificationQuestion?: string;
+  unpresentArchetypes: ArchetypeCode[];
   isSessionComplete: boolean;
-  nextSituation?: SituationDto;
   isIrrelevant?: boolean;
   irrelevantReason?: string;
 }
 
+export interface AlternativeResponseDto {
+  alternativeResponse: string;
+  archetypeCode: ArchetypeCode;
+  archetypeName: string;
+}
+
 export interface SubmitClarificationDto {
-  archetypeId: number;
+  archetypeCode: ArchetypeCode;
   text: string;
+}
+
+export interface SubmitClarificationResultDto {
+  answerId: number;
+  scores: Record<ArchetypeCode, number>;
 }
 
 // =============================================================================

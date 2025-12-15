@@ -9,6 +9,13 @@ import { audit, AuditAction } from '../../services/audit.js';
 import { processVoiceMessage } from '../../services/voice.js';
 import { createMainKeyboard } from '../start/keyboards.js';
 
+// Варианты вопросов к альтернативному ответу (рандомно выбираем)
+const ALTERNATIVE_QUESTION_KEYS = [
+  'alternativeQuestion1',
+  'alternativeQuestion2',
+  'alternativeQuestion3',
+] as const;
+
 export async function sessionConversation(
   conversation: Conversation<MyContext>,
   ctx: MyContext
@@ -53,7 +60,7 @@ export async function sessionConversation(
 
   if (session) {
     // Восстанавливаем сессию
-    situationIndex = session.situationIndex + 1; // +1 потому что situationIndex это индекс последней ситуации (0-based)
+    situationIndex = session.situationIndex + 1;
     conversation.session.sessionId = session.id;
 
     await conversation.external(() =>
@@ -93,8 +100,9 @@ export async function sessionConversation(
 
   let isComplete = false;
 
+  // Основной цикл: 3 ситуации
   while (!isComplete && situationIndex <= MAX_SITUATIONS) {
-    // Получаем ситуацию
+    // ========== 1. Получаем и показываем ситуацию ==========
     let situation;
     try {
       situation = await conversation.external(() => api.getCurrentSituation(session.id));
@@ -120,7 +128,6 @@ export async function sessionConversation(
     }
 
     if (!situation) {
-      // Ситуации закончились
       break;
     }
 
@@ -139,109 +146,23 @@ export async function sessionConversation(
     await ctx.reply(situation.content);
     await ctx.reply(messages.session.waitingAnswer);
 
-    // Цикл получения релевантного ответа (может быть несколько попыток при нерелевантных ответах)
+    // ========== 2. Получаем основной ответ игрока ==========
     let answerAccepted = false;
     let result: Awaited<ReturnType<typeof api.submitAnswer>> | null = null;
 
     while (!answerAccepted) {
-      // Ждём голосовое сообщение
-      let answerText: string | null = null;
-
-      while (!answerText) {
-        const voiceCtx = await conversation.wait();
-
-        // Проверяем на отмену
-        if (voiceCtx.message?.text === '/cancel' || voiceCtx.callbackQuery?.data === 'cancel') {
-          await conversation.external(() =>
-            audit.log({
-              action: AuditAction.SESSION_ABANDONED,
-              telegramId,
-              playerId,
-              sessionId: session.id,
-              data: { situationIndex, reason: 'user_cancel' },
-            })
-          );
-          await conversation.external(() => api.abandonSession(session.id));
-          conversation.session.sessionId = undefined;
-          await ctx.reply(messages.session.sessionAbandoned);
-          await ctx.reply(messages.welcome, { reply_markup: createMainKeyboard(messages) });
-          return;
-        }
-
-        // Если текст вместо голоса
-        if (voiceCtx.message?.text) {
-          await voiceCtx.reply(messages.errors.textNotAllowed);
-          continue;
-        }
-
-        // Проверяем голосовое сообщение
-        const voice = voiceCtx.message?.voice;
-        if (!voice) {
-          continue;
-        }
-
-        // Проверяем длительность
-        if (voice.duration < VOICE_MIN_DURATION_SEC) {
-          await voiceCtx.reply(messages.errors.voiceTooShort);
-          continue;
-        }
-
-        if (voice.duration > VOICE_MAX_DURATION_SEC) {
-          await voiceCtx.reply(messages.errors.voiceTooLong);
-          continue;
-        }
-
-        // Транскрибируем
-        await voiceCtx.reply(messages.session.analyzing);
-
-        await conversation.external(() =>
-          audit.log({
-            action: AuditAction.VOICE_RECEIVED,
-            telegramId,
-            playerId,
-            sessionId: session.id,
-            data: { situationIndex, duration: voice.duration },
-          })
-        );
-
-        try {
-          answerText = await conversation.external(() =>
-            processVoiceMessage(ctx, voice.file_id, voice.mime_type)
-          );
-
-          await conversation.external(() =>
-            audit.log({
-              action: AuditAction.VOICE_TRANSCRIBED,
-              telegramId,
-              playerId,
-              sessionId: session.id,
-              data: { situationIndex, textLength: answerText?.length },
-            })
-          );
-        } catch (error) {
-          await conversation.external(() =>
-            audit.log({
-              action: AuditAction.VOICE_TRANSCRIPTION_FAILED,
-              telegramId,
-              playerId,
-              sessionId: session.id,
-              success: false,
-              errorMsg: error instanceof Error ? error.message : 'Unknown error',
-            })
-          );
-
-          await voiceCtx.reply(messages.errors.transcriptionFailed);
-          continue;
-        }
+      const answerText = await waitForVoiceAnswer(conversation, ctx, messages, session.id, telegramId, playerId, situationIndex);
+      if (answerText === null) {
+        // Сессия отменена
+        return;
       }
 
       // Отправляем ответ на анализ
       try {
         result = await conversation.external(() =>
-          api.submitAnswer(session.id, answerText!)
+          api.submitAnswer(session.id, answerText)
         );
       } catch (error) {
-        // Если сессия уже завершена или в невалидном состоянии - выходим
         const apiError = error as { code?: string };
         if (apiError.code === 'SESSION_ALREADY_COMPLETED' || apiError.code === 'SESSION_INVALID_STATE') {
           await conversation.external(() =>
@@ -276,11 +197,9 @@ export async function sessionConversation(
 
         await ctx.reply(messages.errors.answerIrrelevant);
         await ctx.reply(messages.session.waitingAnswer);
-        // Продолжаем цикл - ждём новый ответ
         continue;
       }
 
-      // Ответ принят
       answerAccepted = true;
     }
 
@@ -292,73 +211,72 @@ export async function sessionConversation(
         sessionId: session.id,
         data: {
           situationIndex,
-          needsClarification: result!.needsClarification,
+          unpresentArchetypes: result!.unpresentArchetypes,
           isSessionComplete: result!.isSessionComplete,
         },
       })
     );
 
-    // Проверяем, нужно ли уточнение
-    if (result!.needsClarification && result!.clarificationQuestion) {
-      await ctx.reply(messages.session.clarification);
-      await ctx.reply(result!.clarificationQuestion);
-      await ctx.reply(messages.session.waitingClarification);
+    // ========== 3. Цикл по непроявленным архетипам ==========
+    const unpresentArchetypes = result!.unpresentArchetypes;
 
-      // Ждём уточняющий ответ
-      let clarificationText: string | null = null;
+    for (const archetypeCode of unpresentArchetypes) {
+      // 3.1 Получаем альтернативный ответ
+      const alt = await conversation.external(() =>
+        api.getAlternativeResponse(session.id, archetypeCode)
+      );
 
-      while (!clarificationText) {
-        const clarCtx = await conversation.wait();
+      // 3.2 Показываем альтернативу
+      await ctx.reply(messages.session.alternativeIntro);
+      await ctx.reply(alt.alternativeResponse);
 
-        if (clarCtx.message?.text === '/cancel') {
-          await conversation.external(() => api.abandonSession(session.id));
-          conversation.session.sessionId = undefined;
-          await ctx.reply(messages.session.sessionAbandoned);
-          return;
-        }
+      // 3.3 Задаём рандомный вопрос
+      const questionIndex = Math.floor(Math.random() * ALTERNATIVE_QUESTION_KEYS.length);
+      const questionKey = ALTERNATIVE_QUESTION_KEYS[questionIndex] ?? 'alternativeQuestion1';
+      const question = messages.session[questionKey];
+      await ctx.reply(question);
 
-        const voice = clarCtx.message?.voice;
-        if (!voice) {
-          if (clarCtx.message?.text) {
-            await clarCtx.reply(messages.errors.textNotAllowed);
-          }
-          continue;
-        }
-
-        if (voice.duration < VOICE_MIN_DURATION_SEC) {
-          await clarCtx.reply(messages.errors.voiceTooShort);
-          continue;
-        }
-
-        try {
-          clarificationText = await conversation.external(() =>
-            processVoiceMessage(ctx, voice.file_id, voice.mime_type)
-          );
-        } catch {
-          await clarCtx.reply(messages.errors.transcriptionFailed);
-          continue;
-        }
+      // 3.4 Получаем комментарий игрока
+      const commentText = await waitForVoiceAnswer(conversation, ctx, messages, session.id, telegramId, playerId, situationIndex, true);
+      if (commentText === null) {
+        // Сессия отменена
+        return;
       }
 
-      // Отправляем уточнение
-      if (result!.clarificationArchetype && clarificationText) {
-        result = await conversation.external(() =>
-          api.submitClarification(session.id, result!.clarificationArchetype!, clarificationText!)
-        );
-      }
+      // 3.5 Отправляем комментарий на анализ
+      await conversation.external(() =>
+        api.submitClarification(session.id, archetypeCode, commentText)
+      );
+
+      await conversation.external(() =>
+        audit.log({
+          action: AuditAction.ANSWER_SUBMITTED,
+          telegramId,
+          playerId,
+          sessionId: session.id,
+          data: {
+            situationIndex,
+            type: 'clarification',
+            archetypeCode,
+          },
+        })
+      );
     }
 
-    // Проверяем завершение
-    isComplete = result!.isSessionComplete;
+    // ========== 4. Переход к следующей ситуации ==========
+    const nextResult = await conversation.external(() =>
+      api.nextSituation(session.id)
+    );
+
+    isComplete = nextResult.isSessionComplete;
     situationIndex++;
   }
 
-  // Завершаем сессию
+  // ========== 5. Завершаем сессию ==========
   try {
     await conversation.external(() => api.completeSession(session.id));
   } catch (error) {
     const apiError = error as { code?: string };
-    // Если сессия уже завершена - это нормально, продолжаем показывать результаты
     if (apiError.code !== 'SESSION_ALREADY_COMPLETED') {
       await conversation.external(() =>
         audit.log({
@@ -390,4 +308,111 @@ export async function sessionConversation(
 
   // Возвращаемся в главное меню
   await ctx.reply(messages.welcome, { reply_markup: createMainKeyboard(messages) });
+}
+
+/**
+ * Ожидание голосового сообщения от игрока
+ * @returns текст ответа или null если сессия отменена
+ */
+async function waitForVoiceAnswer(
+  conversation: Conversation<MyContext>,
+  ctx: MyContext,
+  messages: ReturnType<typeof t>,
+  sessionId: string,
+  telegramId: bigint,
+  playerId: number | undefined,
+  situationIndex: number,
+  isClarification = false
+): Promise<string | null> {
+  while (true) {
+    const voiceCtx = await conversation.wait();
+
+    // Проверяем на отмену
+    if (voiceCtx.message?.text === '/cancel' || voiceCtx.callbackQuery?.data === 'cancel') {
+      await conversation.external(() =>
+        audit.log({
+          action: AuditAction.SESSION_ABANDONED,
+          telegramId,
+          playerId,
+          sessionId,
+          data: { situationIndex, reason: 'user_cancel' },
+        })
+      );
+      await conversation.external(() => api.abandonSession(sessionId));
+      conversation.session.sessionId = undefined;
+      await ctx.reply(messages.session.sessionAbandoned);
+      await ctx.reply(messages.welcome, { reply_markup: createMainKeyboard(messages) });
+      return null;
+    }
+
+    // Если текст вместо голоса
+    if (voiceCtx.message?.text) {
+      await voiceCtx.reply(messages.errors.textNotAllowed);
+      continue;
+    }
+
+    // Проверяем голосовое сообщение
+    const voice = voiceCtx.message?.voice;
+    if (!voice) {
+      continue;
+    }
+
+    // Проверяем длительность
+    if (voice.duration < VOICE_MIN_DURATION_SEC) {
+      await voiceCtx.reply(messages.errors.voiceTooShort);
+      continue;
+    }
+
+    if (voice.duration > VOICE_MAX_DURATION_SEC) {
+      await voiceCtx.reply(messages.errors.voiceTooLong);
+      continue;
+    }
+
+    // Транскрибируем
+    await voiceCtx.reply(messages.session.analyzing);
+
+    await conversation.external(() =>
+      audit.log({
+        action: AuditAction.VOICE_RECEIVED,
+        telegramId,
+        playerId,
+        sessionId,
+        data: { situationIndex, duration: voice.duration, isClarification },
+      })
+    );
+
+    try {
+      const answerText = await conversation.external(() =>
+        processVoiceMessage(ctx, voice.file_id, voice.mime_type)
+      );
+
+      await conversation.external(() =>
+        audit.log({
+          action: AuditAction.VOICE_TRANSCRIBED,
+          telegramId,
+          playerId,
+          sessionId,
+          data: { situationIndex, textLength: answerText?.length, isClarification },
+        })
+      );
+
+      if (answerText) {
+        return answerText;
+      }
+    } catch (error) {
+      await conversation.external(() =>
+        audit.log({
+          action: AuditAction.VOICE_TRANSCRIPTION_FAILED,
+          telegramId,
+          playerId,
+          sessionId,
+          success: false,
+          errorMsg: error instanceof Error ? error.message : 'Unknown error',
+        })
+      );
+
+      await voiceCtx.reply(messages.errors.transcriptionFailed);
+      continue;
+    }
+  }
 }
