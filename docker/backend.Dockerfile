@@ -19,14 +19,14 @@ COPY --from=deps /app/apps/backend/node_modules ./apps/backend/node_modules
 COPY . .
 RUN pnpm run db:generate
 ENV NODE_OPTIONS="--max-old-space-size=1024"
-RUN pnpm --filter @archetypes/shared build && pnpm --filter @archetypes/backend build
+RUN pnpm --filter @archetypes/database build && pnpm --filter @archetypes/shared build && pnpm --filter @archetypes/backend build
 
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=builder /app/packages/database/prisma ./packages/database/prisma
-COPY --from=builder /app/packages/database/src ./packages/database/src
+COPY --from=builder /app/packages/database/dist ./packages/database/dist
 COPY --from=builder /app/packages/database/package.json ./packages/database/
 COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
