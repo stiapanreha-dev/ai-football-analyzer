@@ -27,8 +27,11 @@ ENV NODE_ENV=production
 
 COPY --from=builder /app/packages/database/prisma ./packages/database/prisma
 COPY --from=builder /app/packages/database/src ./packages/database/src
+COPY --from=builder /app/packages/database/package.json ./packages/database/
+COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder /app/apps/backend/package.json ./apps/backend/
 COPY --from=deps /app/node_modules ./node_modules
