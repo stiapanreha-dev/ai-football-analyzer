@@ -312,9 +312,6 @@ export async function sessionConversation(
   await ctx.reply(messages.session.sessionComplete);
   await ctx.reply(messages.result.thankYou);
   conversation.session.sessionId = undefined;
-
-  // Возвращаемся в главное меню
-  await ctx.reply(messages.welcome, { reply_markup: createMainKeyboard(messages) });
 }
 
 /**
