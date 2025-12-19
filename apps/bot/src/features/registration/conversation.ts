@@ -86,6 +86,6 @@ export async function registrationConversation(
   conversation.session.nextStep = 'session';
   await positionResponse.editMessageText(messages.registration.complete);
   await ctx.reply('🏟️ Отлично! Теперь начнём тестирование.', {
-    reply_markup: createContinueKeyboard(),
+    reply_markup: createContinueKeyboard(messages),
   });
 }

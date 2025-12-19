@@ -81,7 +81,7 @@ export async function pinConversation(
         if (result.playerData) {
           await response.reply(
             `✅ PIN-код принят!\n\nДобро пожаловать, ${result.playerData.name}! Ваши данные загружены автоматически.`,
-            { reply_markup: createContinueKeyboard() }
+            { reply_markup: createContinueKeyboard(messages) }
           );
           conversation.session.nextStep = 'session';
           return;
@@ -91,7 +91,7 @@ export async function pinConversation(
           // Новый игрок - нужна регистрация
           conversation.session.nextStep = 'registration';
           await response.reply('✅ PIN-код принят! Давайте познакомимся.', {
-            reply_markup: createContinueKeyboard(),
+            reply_markup: createContinueKeyboard(messages),
           });
           return;
         } else {
@@ -99,7 +99,7 @@ export async function pinConversation(
           const player = await conversation.external(() => api.getPlayerByTelegramId(telegramId));
           if (player?.name) {
             await response.reply(messages.registration.welcomeBack(player.name), {
-              reply_markup: createContinueKeyboard(),
+              reply_markup: createContinueKeyboard(messages),
             });
             // Сохраняем флаг для запуска session conversation
             conversation.session.nextStep = 'session';
@@ -107,7 +107,7 @@ export async function pinConversation(
             // Имя не заполнено - нужна регистрация
             conversation.session.nextStep = 'registration';
             await response.reply('✅ PIN-код принят! Давайте познакомимся.', {
-              reply_markup: createContinueKeyboard(),
+              reply_markup: createContinueKeyboard(messages),
             });
           }
         }

@@ -43,6 +43,6 @@ export function createCancelKeyboard(messages: Messages): InlineKeyboard {
   return new InlineKeyboard().text(messages.keyboards.cancel, 'cancel');
 }
 
-export function createContinueKeyboard(): InlineKeyboard {
-  return new InlineKeyboard().text('➡️ Продолжить', 'continue_flow');
+export function createContinueKeyboard(messages: Messages): InlineKeyboard {
+  return new InlineKeyboard().text(messages.keyboards.continue, 'continue_flow');
 }

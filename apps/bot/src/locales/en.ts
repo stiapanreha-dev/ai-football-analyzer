@@ -1,7 +1,7 @@
 import type { Messages } from './ru.js';
 
 export const en: Messages = {
-  welcome: '🎯 Welcome to Football Archetypes!\n\nThis is a psychological test for football players. I will describe game situations and you will tell me how you would act.',
+  welcome: '🎯 Welcome to Football psy!\n\nThis is a psychological test for football players. I will describe game situations and you will tell me how you would act.',
   help: '📖 Commands:\n/start - Start over\n/language - Change language\n/cancel - Cancel current action\n/help - Show help',
   cancel: '❌ Action cancelled.',
   languageChanged: '✅ Language changed to English.',
@@ -69,5 +69,6 @@ export const en: Messages = {
     changeLanguage: '🌐 Change Language',
     cancel: '❌ Cancel',
     skip: '⏭️ Skip',
+    continue: '➡️ Continue',
   },
 };
