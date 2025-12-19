@@ -12,7 +12,7 @@ import type {
   Language,
   ArchetypeCode,
 } from '@archetypes/shared';
-import { MAX_SITUATIONS, TOP_DOMINANT_ARCHETYPES, MAX_CLARIFICATIONS, CLARIFICATION_CONFIRMATION_THRESHOLD } from '@archetypes/shared';
+import { MAX_SITUATIONS, TOP_DOMINANT_ARCHETYPES, MAX_CLARIFICATIONS } from '@archetypes/shared';
 
 import {
   NotFoundError,
@@ -465,19 +465,14 @@ export class SessionService {
       })),
     });
 
-    // Проверяем, подтвердил ли пользователь близость к целевому архетипу
-    const targetArchetypeScore = analysis.scores[data.archetypeCode] ?? 0;
+    // Удаляем архетип из pendingArchetypes после уточнения (независимо от score)
     let currentPending = session.pendingArchetypes || [];
+    currentPending = currentPending.filter((id) => id !== targetArchetypeId);
 
-    if (targetArchetypeScore >= CLARIFICATION_CONFIRMATION_THRESHOLD) {
-      // Пользователь подтвердил близость - удаляем архетип из pendingArchetypes
-      currentPending = currentPending.filter((id) => id !== targetArchetypeId);
-
-      await this.app.prisma.session.update({
-        where: { id: sessionId },
-        data: { pendingArchetypes: currentPending },
-      });
-    }
+    await this.app.prisma.session.update({
+      where: { id: sessionId },
+      data: { pendingArchetypes: currentPending },
+    });
 
     // Конвертируем оставшиеся ID в коды архетипов
     const idToCodeMap = new Map(archetypes.map((a) => [a.id, a.code as ArchetypeCode]));
