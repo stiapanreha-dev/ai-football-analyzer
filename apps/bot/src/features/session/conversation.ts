@@ -1,6 +1,6 @@
 import type { Conversation } from '@grammyjs/conversations';
 
-import { VOICE_MIN_DURATION_SEC, VOICE_MAX_DURATION_SEC, MAX_SITUATIONS } from '@archetypes/shared';
+import { VOICE_MIN_DURATION_SEC, VOICE_MAX_DURATION_SEC, TEXT_MIN_LENGTH, MAX_SITUATIONS } from '@archetypes/shared';
 
 import type { MyContext } from '../../utils/context.js';
 import { t, getTelegramId } from '../../utils/helpers.js';
@@ -151,7 +151,7 @@ export async function sessionConversation(
     let result: Awaited<ReturnType<typeof api.submitAnswer>> | null = null;
 
     while (!answerAccepted) {
-      const answerText = await waitForVoiceAnswer(conversation, ctx, messages, session.id, telegramId, playerId, situationIndex);
+      const answerText = await waitForAnswer(conversation, ctx, messages, session.id, telegramId, playerId, situationIndex);
       if (answerText === null) {
         // Сессия отменена
         return;
@@ -218,9 +218,12 @@ export async function sessionConversation(
     );
 
     // ========== 3. Цикл по непроявленным архетипам ==========
-    const unpresentArchetypes = result!.unpresentArchetypes;
+    // Используем динамический список, который обновляется после каждого clarification
+    let remainingArchetypes = [...result!.unpresentArchetypes];
 
-    for (const archetypeCode of unpresentArchetypes) {
+    while (remainingArchetypes.length > 0) {
+      const archetypeCode = remainingArchetypes[0]!;
+
       // 3.1 Получаем альтернативный ответ
       const alt = await conversation.external(() =>
         api.getAlternativeResponse(session.id, archetypeCode)
@@ -237,16 +240,19 @@ export async function sessionConversation(
       await ctx.reply(question);
 
       // 3.4 Получаем комментарий игрока
-      const commentText = await waitForVoiceAnswer(conversation, ctx, messages, session.id, telegramId, playerId, situationIndex, true);
+      const commentText = await waitForAnswer(conversation, ctx, messages, session.id, telegramId, playerId, situationIndex, true);
       if (commentText === null) {
         // Сессия отменена
         return;
       }
 
-      // 3.5 Отправляем комментарий на анализ
-      await conversation.external(() =>
+      // 3.5 Отправляем комментарий на анализ и получаем обновлённый список архетипов
+      const clarificationResult = await conversation.external(() =>
         api.submitClarification(session.id, archetypeCode, commentText)
       );
+
+      // Обновляем список оставшихся архетипов (фильтрует подтверждённые)
+      remainingArchetypes = clarificationResult.remainingArchetypes;
 
       await conversation.external(() =>
         audit.log({
@@ -258,6 +264,7 @@ export async function sessionConversation(
             situationIndex,
             type: 'clarification',
             archetypeCode,
+            remainingCount: remainingArchetypes.length,
           },
         })
       );
@@ -311,10 +318,10 @@ export async function sessionConversation(
 }
 
 /**
- * Ожидание голосового сообщения от игрока
+ * Ожидание ответа от игрока (голосовое или текстовое сообщение)
  * @returns текст ответа или null если сессия отменена
  */
-async function waitForVoiceAnswer(
+async function waitForAnswer(
   conversation: Conversation<MyContext>,
   ctx: MyContext,
   messages: ReturnType<typeof t>,
@@ -325,94 +332,117 @@ async function waitForVoiceAnswer(
   isClarification = false
 ): Promise<string | null> {
   while (true) {
-    const voiceCtx = await conversation.wait();
+    const msgCtx = await conversation.wait();
 
-    // Проверяем на отмену
-    if (voiceCtx.message?.text === '/cancel' || voiceCtx.callbackQuery?.data === 'cancel') {
+    // Проверяем на отмену или /start (выход из conversation)
+    if (msgCtx.message?.text === '/cancel' || msgCtx.message?.text === '/start' || msgCtx.callbackQuery?.data === 'cancel') {
+      const reason = msgCtx.message?.text === '/start' ? 'user_restart' : 'user_cancel';
       await conversation.external(() =>
         audit.log({
           action: AuditAction.SESSION_ABANDONED,
           telegramId,
           playerId,
           sessionId,
-          data: { situationIndex, reason: 'user_cancel' },
+          data: { situationIndex, reason },
         })
       );
       await conversation.external(() => api.abandonSession(sessionId));
       conversation.session.sessionId = undefined;
+
+      if (msgCtx.message?.text === '/start') {
+        // Для /start - просто выходим, start handler покажет меню
+        return null;
+      }
+
       await ctx.reply(messages.session.sessionAbandoned);
       await ctx.reply(messages.welcome, { reply_markup: createMainKeyboard(messages) });
       return null;
     }
 
-    // Если текст вместо голоса
-    if (voiceCtx.message?.text) {
-      await voiceCtx.reply(messages.errors.textNotAllowed);
-      continue;
-    }
-
-    // Проверяем голосовое сообщение
-    const voice = voiceCtx.message?.voice;
-    if (!voice) {
-      continue;
-    }
-
-    // Проверяем длительность
-    if (voice.duration < VOICE_MIN_DURATION_SEC) {
-      await voiceCtx.reply(messages.errors.voiceTooShort);
-      continue;
-    }
-
-    if (voice.duration > VOICE_MAX_DURATION_SEC) {
-      await voiceCtx.reply(messages.errors.voiceTooLong);
-      continue;
-    }
-
-    // Транскрибируем
-    await voiceCtx.reply(messages.session.analyzing);
-
-    await conversation.external(() =>
-      audit.log({
-        action: AuditAction.VOICE_RECEIVED,
-        telegramId,
-        playerId,
-        sessionId,
-        data: { situationIndex, duration: voice.duration, isClarification },
-      })
-    );
-
-    try {
-      const answerText = await conversation.external(() =>
-        processVoiceMessage(ctx, voice.file_id, voice.mime_type)
-      );
-
-      await conversation.external(() =>
-        audit.log({
-          action: AuditAction.VOICE_TRANSCRIBED,
-          telegramId,
-          playerId,
-          sessionId,
-          data: { situationIndex, textLength: answerText?.length, isClarification },
-        })
-      );
-
-      if (answerText) {
-        return answerText;
+    // Обработка текстового сообщения
+    const text = msgCtx.message?.text;
+    if (text) {
+      // Проверяем минимальную длину
+      if (text.length < TEXT_MIN_LENGTH) {
+        await msgCtx.reply(messages.errors.textTooShort);
+        continue;
       }
-    } catch (error) {
+
       await conversation.external(() =>
         audit.log({
-          action: AuditAction.VOICE_TRANSCRIPTION_FAILED,
+          action: AuditAction.TEXT_RECEIVED,
           telegramId,
           playerId,
           sessionId,
-          success: false,
-          errorMsg: error instanceof Error ? error.message : 'Unknown error',
+          data: { situationIndex, textLength: text.length, isClarification },
         })
       );
 
-      await voiceCtx.reply(messages.errors.transcriptionFailed);
-      continue;
+      return text;
     }
+
+    // Обработка голосового сообщения
+    const voice = msgCtx.message?.voice;
+    if (voice) {
+      // Проверяем длительность
+      if (voice.duration < VOICE_MIN_DURATION_SEC) {
+        await msgCtx.reply(messages.errors.voiceTooShort);
+        continue;
+      }
+
+      if (voice.duration > VOICE_MAX_DURATION_SEC) {
+        await msgCtx.reply(messages.errors.voiceTooLong);
+        continue;
+      }
+
+      // Транскрибируем
+      await msgCtx.reply(messages.session.analyzing);
+
+      await conversation.external(() =>
+        audit.log({
+          action: AuditAction.VOICE_RECEIVED,
+          telegramId,
+          playerId,
+          sessionId,
+          data: { situationIndex, duration: voice.duration, isClarification },
+        })
+      );
+
+      try {
+        const answerText = await conversation.external(() =>
+          processVoiceMessage(ctx, voice.file_id, voice.mime_type)
+        );
+
+        await conversation.external(() =>
+          audit.log({
+            action: AuditAction.VOICE_TRANSCRIBED,
+            telegramId,
+            playerId,
+            sessionId,
+            data: { situationIndex, textLength: answerText?.length, isClarification },
+          })
+        );
+
+        if (answerText) {
+          return answerText;
+        }
+      } catch (error) {
+        await conversation.external(() =>
+          audit.log({
+            action: AuditAction.VOICE_TRANSCRIPTION_FAILED,
+            telegramId,
+            playerId,
+            sessionId,
+            success: false,
+            errorMsg: error instanceof Error ? error.message : 'Unknown error',
+          })
+        );
+
+        await msgCtx.reply(messages.errors.transcriptionFailed);
+        continue;
+      }
+    }
+
+    // Игнорируем другие типы сообщений (стикеры, фото и т.д.)
   }
 }

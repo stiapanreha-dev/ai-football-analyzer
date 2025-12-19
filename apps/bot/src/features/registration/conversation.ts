@@ -28,6 +28,11 @@ export async function registrationConversation(
   const nameResponse = await conversation.waitFor('message:text');
   const name = nameResponse.message.text.trim();
 
+  // Проверяем на /start или /cancel - выходим из conversation
+  if (name === '/start' || name === '/cancel') {
+    return; // Выходим, /start handler покажет меню
+  }
+
   await conversation.external(() =>
     audit.log({
       action: AuditAction.REGISTRATION_NAME_ENTERED,

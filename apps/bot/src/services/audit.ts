@@ -128,6 +128,9 @@ export const AuditAction = {
   VOICE_TRANSCRIBED: 'voice_transcribed',
   VOICE_TRANSCRIPTION_FAILED: 'voice_transcription_failed',
 
+  // Текстовые сообщения
+  TEXT_RECEIVED: 'text_received',
+
   // Flow
   CONTINUE_FLOW_CLICKED: 'continue_flow_clicked',
   LANGUAGE_CHANGED: 'language_changed',

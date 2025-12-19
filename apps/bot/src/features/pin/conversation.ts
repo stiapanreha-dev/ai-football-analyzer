@@ -23,6 +23,11 @@ export async function pinConversation(
     const response = await conversation.waitFor('message:text');
     const code = response.message.text.trim();
 
+    // Проверяем на /start или /cancel - выходим из conversation
+    if (code === '/start' || code === '/cancel') {
+      return; // Выходим, /start handler покажет меню
+    }
+
     // Логируем ввод PIN
     await conversation.external(() =>
       audit.log({

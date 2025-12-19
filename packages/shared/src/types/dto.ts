@@ -160,6 +160,7 @@ export interface SubmitClarificationDto {
 export interface SubmitClarificationResultDto {
   answerId: number;
   scores: Record<ArchetypeCode, number>;
+  remainingArchetypes: ArchetypeCode[]; // Оставшиеся непроявленные архетипы после фильтрации
 }
 
 // =============================================================================

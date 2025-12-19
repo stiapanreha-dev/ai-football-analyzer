@@ -12,7 +12,7 @@ import type {
   Language,
   ArchetypeCode,
 } from '@archetypes/shared';
-import { MAX_SITUATIONS, TOP_DOMINANT_ARCHETYPES } from '@archetypes/shared';
+import { MAX_SITUATIONS, TOP_DOMINANT_ARCHETYPES, MAX_CLARIFICATIONS, CLARIFICATION_CONFIRMATION_THRESHOLD } from '@archetypes/shared';
 
 import {
   NotFoundError,
@@ -310,11 +310,13 @@ export class SessionService {
       })),
     });
 
-    // Определяем доминирующие архетипы (топ N по score) и непроявленные
+    // Определяем доминирующие архетипы (топ N по score) и непроявленные (с наименьшим score первыми)
     const sortedScores = Object.entries(analysis.scores)
       .sort(([, a], [, b]) => b - a);
     const unpresentArchetypes = sortedScores
       .slice(TOP_DOMINANT_ARCHETYPES)
+      .reverse() // Переворачиваем: самые низкие scores первыми для максимального контраста
+      .slice(0, MAX_CLARIFICATIONS) // Ограничиваем до 3 самых слабых
       .map(([code]) => code as ArchetypeCode);
 
     // Сохраняем ID непроявленных архетипов в сессии для последующих clarification
@@ -463,9 +465,30 @@ export class SessionService {
       })),
     });
 
+    // Проверяем, подтвердил ли пользователь близость к целевому архетипу
+    const targetArchetypeScore = analysis.scores[data.archetypeCode] ?? 0;
+    let currentPending = session.pendingArchetypes || [];
+
+    if (targetArchetypeScore >= CLARIFICATION_CONFIRMATION_THRESHOLD) {
+      // Пользователь подтвердил близость - удаляем архетип из pendingArchetypes
+      currentPending = currentPending.filter((id) => id !== targetArchetypeId);
+
+      await this.app.prisma.session.update({
+        where: { id: sessionId },
+        data: { pendingArchetypes: currentPending },
+      });
+    }
+
+    // Конвертируем оставшиеся ID в коды архетипов
+    const idToCodeMap = new Map(archetypes.map((a) => [a.id, a.code as ArchetypeCode]));
+    const remainingArchetypes = currentPending
+      .map((id) => idToCodeMap.get(id))
+      .filter((code): code is ArchetypeCode => code !== undefined);
+
     return {
       answerId: answer.id,
       scores: analysis.scores,
+      remainingArchetypes,
     };
   }
 
