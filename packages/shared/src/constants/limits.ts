@@ -6,7 +6,7 @@
 export const MIN_SITUATIONS = 1;
 export const MAX_SITUATIONS = 1;
 export const TOP_DOMINANT_ARCHETYPES = 2; // Количество доминирующих архетипов для исключения из clarification
-export const MAX_CLARIFICATIONS = 3; // Максимальное количество уточнений (самые слабые архетипы)
+export const MAX_CLARIFICATIONS = 5; // Максимальное количество уточнений (самые слабые архетипы)
 
 // Голосовые сообщения
 export const VOICE_MIN_DURATION_SEC = 3;
