@@ -110,6 +110,7 @@ export class PromptService {
       prompt_situation: 0.8,
       prompt_analysis: 0.3,
       prompt_clarification: 0.7,
+      prompt_alternative_response: 0.7,
       prompt_player_report: 0.6,
       prompt_coach_report: 0.4,
     };

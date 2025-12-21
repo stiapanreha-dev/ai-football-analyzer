@@ -19,7 +19,7 @@ export class ReportService {
   private readonly llmService: LlmService;
 
   constructor(private readonly app: FastifyInstance) {
-    this.llmService = createLlmService();
+    this.llmService = createLlmService(this.app);
   }
 
   /**

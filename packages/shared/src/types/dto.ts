@@ -237,6 +237,7 @@ export const PROMPT_KEYS = [
   'prompt_situation',
   'prompt_analysis',
   'prompt_clarification',
+  'prompt_alternative_response',
   'prompt_player_report',
   'prompt_coach_report',
 ] as const;
@@ -247,6 +248,7 @@ export const PROMPT_LABELS: Record<PromptKey, string> = {
   prompt_situation: 'Генерация ситуаций',
   prompt_analysis: 'Анализ ответов',
   prompt_clarification: 'Уточняющие вопросы',
+  prompt_alternative_response: 'Альтернативные ответы',
   prompt_player_report: 'Отчёт игроку',
   prompt_coach_report: 'Отчёт тренеру',
 };
@@ -267,6 +269,14 @@ export const PROMPT_PLACEHOLDERS: Record<PromptKey, string[]> = {
     '{{ARCHETYPE_BEHAVIOR}}',
     '{{SITUATION}}',
     '{{ANSWER}}',
+    '{{LANGUAGE_INSTRUCTION}}',
+  ],
+  prompt_alternative_response: [
+    '{{ARCHETYPE_NAME}}',
+    '{{ARCHETYPE_DESCRIPTION}}',
+    '{{ARCHETYPE_BEHAVIOR}}',
+    '{{SITUATION}}',
+    '{{PLAYER_POSITION}}',
     '{{LANGUAGE_INSTRUCTION}}',
   ],
   prompt_player_report: ['{{PLAYER_INFO}}', '{{SCORES}}', '{{ARCHETYPE_DETAILS}}', '{{LANGUAGE_INSTRUCTION}}'],

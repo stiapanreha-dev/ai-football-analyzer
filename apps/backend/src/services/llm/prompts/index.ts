@@ -1,5 +1,8 @@
-export * from './situation.js';
-export * from './analysis.js';
-export * from './clarification.js';
-export * from './alternative-response.js';
-export * from './report.js';
+// Утилиты
+export { replacePlaceholders, getLanguageInstruction, getPositionName } from './utils.js';
+
+// Парсеры и типы из analysis.ts
+export { parseAnalysisResponse, type AnalysisResult } from './analysis.js';
+
+// Парсеры и типы из report.ts
+export { parseCoachReportResponse, type CoachReportResult } from './report.js';
