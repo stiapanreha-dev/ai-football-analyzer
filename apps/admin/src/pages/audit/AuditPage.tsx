@@ -258,9 +258,17 @@ export function AuditPage() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                 />
-                {[...Array(Math.min(5, data.totalPages))].map((_, i) => {
-                  const pageNum = Math.max(1, Math.min(page - 2 + i, data.totalPages - 4 + i));
-                  return (
+                {(() => {
+                  const maxVisible = 5;
+                  const half = Math.floor(maxVisible / 2);
+                  let start = Math.max(1, page - half);
+                  const end = Math.min(data.totalPages, start + maxVisible - 1);
+                  start = Math.max(1, end - maxVisible + 1);
+                  const pages = [];
+                  for (let i = start; i <= end; i++) {
+                    pages.push(i);
+                  }
+                  return pages.map((pageNum) => (
                     <Pagination.Item
                       key={pageNum}
                       active={pageNum === page}
@@ -268,8 +276,8 @@ export function AuditPage() {
                     >
                       {pageNum}
                     </Pagination.Item>
-                  );
-                })}
+                  ));
+                })()}
                 <Pagination.Next
                   onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
                   disabled={page === data.totalPages}
