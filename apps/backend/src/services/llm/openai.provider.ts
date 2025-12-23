@@ -28,7 +28,7 @@ export async function complete(
   try {
     const response = await openai.chat.completions.create({
       model: MODEL,
-      max_tokens: maxTokens,
+      max_completion_tokens: maxTokens,
       temperature,
       messages: [
         {
