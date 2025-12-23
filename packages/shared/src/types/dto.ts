@@ -189,10 +189,7 @@ export interface CoachReportDto {
   weaknesses: string[];
   bestSituations: string[];
   riskSituations: string[];
-  compatibility: {
-    worksWith: string[];
-    conflictsWith: string[];
-  };
+  compatibility: Record<ArchetypeCode, number>; // Процент совместимости 0-100 для каждого архетипа
   recommendations: string[];
 }
 

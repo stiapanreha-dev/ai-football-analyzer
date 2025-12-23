@@ -6,7 +6,7 @@ import html2pdf from 'html2pdf.js';
 import { useReport } from '@/features/reports/hooks';
 import { LoadingSpinner } from '@/shared/ui/LoadingSpinner';
 import { ErrorAlert } from '@/shared/ui/ErrorAlert';
-import { formatDateTime } from '@archetypes/shared';
+import { formatDateTime, ARCHETYPES, type ArchetypeCode } from '@archetypes/shared';
 
 const strengthLabels: Record<string, { label: string; variant: string }> = {
   dominant: { label: 'Доминирующий', variant: 'success' },
@@ -237,27 +237,29 @@ export function ReportDetailPage() {
 
           <Card className="mb-4">
             <Card.Header>
-              <strong>Совместимость</strong>
+              <strong>Совместимость с другими архетипами</strong>
             </Card.Header>
             <Card.Body>
-              <Row>
-                <Col md={6}>
-                  <h6 className="text-success">Хорошо взаимодействует с:</h6>
-                  <ul>
-                    {report.coachReport.compatibility.worksWith.map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
-                  </ul>
-                </Col>
-                <Col md={6}>
-                  <h6 className="text-danger">Возможны конфликты с:</h6>
-                  <ul>
-                    {report.coachReport.compatibility.conflictsWith.map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
-                  </ul>
-                </Col>
-              </Row>
+              {(Object.keys(ARCHETYPES) as ArchetypeCode[]).map((code) => {
+                const archetype = ARCHETYPES[code];
+                const percent = report.coachReport.compatibility[code] ?? 0;
+                const variant = percent >= 70 ? 'success' : percent >= 40 ? 'warning' : 'danger';
+                return (
+                  <div key={code} className="mb-3">
+                    <div className="d-flex justify-content-between mb-1">
+                      <span>
+                        {archetype.emoji} {archetype.name}
+                      </span>
+                      <Badge bg={variant}>{percent}%</Badge>
+                    </div>
+                    <ProgressBar
+                      now={percent}
+                      variant={variant}
+                      style={{ height: '8px' }}
+                    />
+                  </div>
+                );
+              })}
             </Card.Body>
           </Card>
 

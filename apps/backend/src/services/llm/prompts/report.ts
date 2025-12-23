@@ -1,13 +1,12 @@
+import type { ArchetypeCode } from '@archetypes/shared';
+
 export interface CoachReportResult {
   summary: string;
   strengths: string[];
   weaknesses: string[];
   bestSituations: string[];
   riskSituations: string[];
-  compatibility: {
-    worksWith: string[];
-    conflictsWith: string[];
-  };
+  compatibility: Record<ArchetypeCode, number>; // Процент совместимости 0-100 для каждого архетипа
   recommendations: string[];
 }
 
