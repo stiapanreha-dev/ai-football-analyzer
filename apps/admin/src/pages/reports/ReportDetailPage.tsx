@@ -1,5 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
-import { Card, Row, Col, Badge, ListGroup, Button, ProgressBar } from 'react-bootstrap';
+import { useRef, useState } from 'react';
+import { Card, Row, Col, Badge, ListGroup, Button, ProgressBar, Spinner } from 'react-bootstrap';
+import html2pdf from 'html2pdf.js';
 
 import { useReport } from '@/features/reports/hooks';
 import { LoadingSpinner } from '@/shared/ui/LoadingSpinner';
@@ -23,8 +25,32 @@ const positionLabels: Record<string, string> = {
 export function ReportDetailPage() {
   const { id } = useParams<{ id: string }>();
   const reportId = Number(id);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const { data: report, isLoading, error, refetch } = useReport(reportId);
+
+  const handleDownloadPdf = async () => {
+    if (!reportRef.current || !report) return;
+
+    setIsGeneratingPdf(true);
+    try {
+      const playerName = report.player.name ?? `player_${report.player.id}`;
+      const filename = `report_${playerName.replace(/\s+/g, '_')}_${report.id}.pdf`;
+
+      const opt = {
+        margin: 10,
+        filename,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+      };
+
+      await html2pdf().set(opt).from(reportRef.current).save();
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -42,11 +68,28 @@ export function ReportDetailPage() {
         <h4 className="mb-0">
           Отчёт #{report.id}
         </h4>
-        <Link to="/reports">
-          <Button variant="outline-secondary">Назад к списку</Button>
-        </Link>
+        <div className="d-flex gap-2">
+          <Button
+            variant="success"
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf}
+          >
+            {isGeneratingPdf ? (
+              <>
+                <Spinner size="sm" className="me-2" />
+                Генерация...
+              </>
+            ) : (
+              'Скачать PDF'
+            )}
+          </Button>
+          <Link to="/reports">
+            <Button variant="outline-secondary">Назад к списку</Button>
+          </Link>
+        </div>
       </div>
 
+      <div ref={reportRef}>
       <Row>
         <Col md={4}>
           <Card className="mb-4">
@@ -233,6 +276,7 @@ export function ReportDetailPage() {
           </Card>
         </Col>
       </Row>
+      </div>
     </div>
   );
 }
