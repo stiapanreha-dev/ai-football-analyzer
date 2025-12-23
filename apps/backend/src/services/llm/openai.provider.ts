@@ -8,7 +8,7 @@ const openai = new OpenAI({
   apiKey: config.openaiApiKey,
 });
 
-const MODEL = 'gpt-4o';
+const MODEL = 'gpt-5.1';
 const MAX_TOKENS = 2048;
 
 export interface CompletionOptions {
