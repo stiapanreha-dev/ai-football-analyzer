@@ -2,11 +2,22 @@ import { useParams, Link } from 'react-router-dom';
 import { useRef, useState } from 'react';
 import { Card, Row, Col, Badge, ListGroup, Button, ProgressBar, Spinner } from 'react-bootstrap';
 import html2pdf from 'html2pdf.js';
+import { FaCrown, FaFistRaised, FaBrain, FaHandshake, FaCog, FaStar, FaDoorOpen } from 'react-icons/fa';
 
 import { useReport } from '@/features/reports/hooks';
 import { LoadingSpinner } from '@/shared/ui/LoadingSpinner';
 import { ErrorAlert } from '@/shared/ui/ErrorAlert';
 import { formatDateTime, ARCHETYPES, type ArchetypeCode } from '@archetypes/shared';
+
+const archetypeIcons: Record<ArchetypeCode, React.ReactNode> = {
+  leader: <FaCrown className="me-2" />,
+  warrior: <FaFistRaised className="me-2" />,
+  strategist: <FaBrain className="me-2" />,
+  diplomat: <FaHandshake className="me-2" />,
+  executor: <FaCog className="me-2" />,
+  individualist: <FaStar className="me-2" />,
+  avoider: <FaDoorOpen className="me-2" />,
+};
 
 const strengthLabels: Record<string, { label: string; variant: string }> = {
   dominant: { label: 'Доминирующий', variant: 'success' },
@@ -247,8 +258,9 @@ export function ReportDetailPage() {
                 return (
                   <div key={code} className="mb-3">
                     <div className="d-flex justify-content-between mb-1">
-                      <span>
-                        {archetype.emoji} {archetype.name}
+                      <span className="d-flex align-items-center">
+                        {archetypeIcons[code]}
+                        {archetype.name}
                       </span>
                       <Badge bg={variant}>{percent}%</Badge>
                     </div>
