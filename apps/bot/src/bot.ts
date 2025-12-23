@@ -16,11 +16,29 @@ import { pinConversation } from './features/pin/conversation.js';
 import { registrationConversation } from './features/registration/conversation.js';
 import { sessionConversation } from './features/session/conversation.js';
 
+// Таймаут для Redis операций
+const REDIS_TIMEOUT = 5_000; // 5 сек
+
+/**
+ * Promise с таймаутом для предотвращения зависания
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, operation: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Redis ${operation} timeout after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
+// Экспортируем redis для graceful shutdown
+export let redis: Redis;
+
 export async function createBot(): Promise<Bot<MyContext>> {
   const bot = new Bot<MyContext>(config.botToken);
 
   // Redis adapter для хранения сессий
-  const redis = new Redis(config.redisUrl);
+  redis = new Redis(config.redisUrl);
 
   // Error handler
   bot.catch(errorHandler);
@@ -42,23 +60,35 @@ export async function createBot(): Promise<Bot<MyContext>> {
   // Hydrate (для редактирования сообщений)
   bot.use(hydrate());
 
-  // Session (Redis storage)
+  // Session (Redis storage with timeouts)
   bot.use(
     session({
       initial: initialSession,
       storage: {
         read: async (key: string) => {
-          const data = await redis.get(`session:${key}`);
+          const data = await withTimeout(
+            redis.get(`session:${key}`),
+            REDIS_TIMEOUT,
+            'read'
+          );
           if (data) {
             return JSON.parse(data) as SessionData;
           }
           return undefined;
         },
         write: async (key: string, value: SessionData) => {
-          await redis.set(`session:${key}`, JSON.stringify(value), 'EX', 86400 * 7); // 7 days
+          await withTimeout(
+            redis.set(`session:${key}`, JSON.stringify(value), 'EX', 86400 * 7),
+            REDIS_TIMEOUT,
+            'write'
+          );
         },
         delete: async (key: string) => {
-          await redis.del(`session:${key}`);
+          await withTimeout(
+            redis.del(`session:${key}`),
+            REDIS_TIMEOUT,
+            'delete'
+          );
         },
       },
     })

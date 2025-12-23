@@ -14,6 +14,33 @@ import type {
 import { config } from '../config.js';
 import { logger } from '../middleware/logging.js';
 
+// Таймауты для предотвращения зависания
+const TIMEOUT_DEFAULT = 60_000; // 60 сек для обычных запросов (Claude может думать долго)
+const TIMEOUT_TRANSCRIBE = 120_000; // 2 мин для транскрибации больших файлов
+
+/**
+ * Fetch с таймаутом для предотвращения зависания
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeoutMs}ms: ${url}`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 class ApiError extends Error {
   constructor(
     message: string,
@@ -47,7 +74,7 @@ async function request<T>(
     fetchOptions.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url, fetchOptions);
+  const response = await fetchWithTimeout(url, fetchOptions, TIMEOUT_DEFAULT);
 
   const data = (await response.json()) as ApiResponse<T> | { success: false; error: { code: string; message: string } };
 
@@ -158,10 +185,11 @@ export const api = {
       formData.append('language', language);
     }
 
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
-    });
+    const response = await fetchWithTimeout(
+      url,
+      { method: 'POST', body: formData },
+      TIMEOUT_TRANSCRIBE
+    );
 
     const data = (await response.json()) as { success: boolean; data?: { text: string }; error?: { code: string; message: string } };
 

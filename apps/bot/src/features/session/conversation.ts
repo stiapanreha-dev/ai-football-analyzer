@@ -225,9 +225,27 @@ export async function sessionConversation(
       const archetypeCode = remainingArchetypes[0]!;
 
       // 3.1 Получаем альтернативный ответ
-      const alt = await conversation.external(() =>
-        api.getAlternativeResponse(session.id, archetypeCode)
-      );
+      let alt;
+      try {
+        alt = await conversation.external(() =>
+          api.getAlternativeResponse(session.id, archetypeCode)
+        );
+      } catch (error) {
+        await conversation.external(() =>
+          audit.log({
+            action: AuditAction.ERROR,
+            telegramId,
+            playerId,
+            sessionId: session.id,
+            success: false,
+            errorMsg: `Failed to get alternative response: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          })
+        );
+        await ctx.reply(messages.errors.general);
+        await ctx.reply(messages.welcome, { reply_markup: createMainKeyboard(messages) });
+        conversation.session.sessionId = undefined;
+        return;
+      }
 
       // 3.2 Показываем альтернативу
       await ctx.reply(messages.session.alternativeIntro);
@@ -247,9 +265,27 @@ export async function sessionConversation(
       }
 
       // 3.5 Отправляем комментарий на анализ и получаем обновлённый список архетипов
-      const clarificationResult = await conversation.external(() =>
-        api.submitClarification(session.id, archetypeCode, commentText)
-      );
+      let clarificationResult;
+      try {
+        clarificationResult = await conversation.external(() =>
+          api.submitClarification(session.id, archetypeCode, commentText)
+        );
+      } catch (error) {
+        await conversation.external(() =>
+          audit.log({
+            action: AuditAction.ERROR,
+            telegramId,
+            playerId,
+            sessionId: session.id,
+            success: false,
+            errorMsg: `Failed to submit clarification: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          })
+        );
+        await ctx.reply(messages.errors.general);
+        await ctx.reply(messages.welcome, { reply_markup: createMainKeyboard(messages) });
+        conversation.session.sessionId = undefined;
+        return;
+      }
 
       // Обновляем список оставшихся архетипов (фильтрует подтверждённые)
       remainingArchetypes = clarificationResult.remainingArchetypes;
@@ -271,9 +307,27 @@ export async function sessionConversation(
     }
 
     // ========== 4. Переход к следующей ситуации ==========
-    const nextResult = await conversation.external(() =>
-      api.nextSituation(session.id)
-    );
+    let nextResult;
+    try {
+      nextResult = await conversation.external(() =>
+        api.nextSituation(session.id)
+      );
+    } catch (error) {
+      await conversation.external(() =>
+        audit.log({
+          action: AuditAction.ERROR,
+          telegramId,
+          playerId,
+          sessionId: session.id,
+          success: false,
+          errorMsg: `Failed to move to next situation: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        })
+      );
+      await ctx.reply(messages.errors.general);
+      await ctx.reply(messages.welcome, { reply_markup: createMainKeyboard(messages) });
+      conversation.session.sessionId = undefined;
+      return;
+    }
 
     isComplete = nextResult.isSessionComplete;
     situationIndex++;
