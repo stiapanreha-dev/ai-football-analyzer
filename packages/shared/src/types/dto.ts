@@ -198,6 +198,7 @@ export interface CoachReportDto {
   compatibility: Record<ArchetypeCode, number>; // Процент совместимости 0-100 для каждого архетипа
   recommendedPositions: RecommendedPosition[]; // Рекомендуемые позиции с обоснованием
   recommendations: string[];
+  psychologicalPlan: string[]; // План работы для психологической службы
 }
 
 export interface ReportDto {

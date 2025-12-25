@@ -15,6 +15,7 @@ export interface CoachReportResult {
   compatibility: Record<ArchetypeCode, number>; // Процент совместимости 0-100 для каждого архетипа
   recommendedPositions: RecommendedPositionResult[];
   recommendations: string[];
+  psychologicalPlan: string[]; // План работы для психологической службы
 }
 
 export function parseCoachReportResponse(response: string): CoachReportResult {

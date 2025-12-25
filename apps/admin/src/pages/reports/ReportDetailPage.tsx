@@ -318,6 +318,22 @@ export function ReportDetailPage() {
               ))}
             </ListGroup>
           </Card>
+
+          {report.coachReport.psychologicalPlan && report.coachReport.psychologicalPlan.length > 0 && (
+            <Card className="mb-4 border-secondary">
+              <Card.Header className="bg-secondary text-white">
+                <strong>План работы для психологической службы</strong>
+              </Card.Header>
+              <ListGroup variant="flush">
+                {report.coachReport.psychologicalPlan.map((item, i) => (
+                  <ListGroup.Item key={i}>
+                    <span className="text-secondary me-2">{i + 1}.</span>
+                    {item}
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            </Card>
+          )}
         </Col>
       </Row>
       </div>
