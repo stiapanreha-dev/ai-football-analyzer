@@ -88,6 +88,31 @@ const playersRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
+  // DELETE /players/:id - Удаление игрока (защищённый)
+  fastify.delete<{
+    Params: { id: string };
+    Reply: ApiResponse<{ deleted: boolean }>;
+  }>(
+    '/:id',
+    {
+      schema: {
+        tags: ['players'],
+        summary: 'Удалить игрока',
+        security: [{ bearerAuth: [] }],
+      },
+      preHandler: [fastify.authenticate],
+    },
+    async (request, reply) => {
+      const { id } = getPlayerParamsSchema.parse(request.params);
+      await playerService.delete(id);
+
+      return reply.send({
+        success: true,
+        data: { deleted: true },
+      });
+    }
+  );
+
   // GET /players/:id/sessions - История сессий игрока (защищённый)
   fastify.get<{
     Params: { id: string };
@@ -156,6 +181,29 @@ const playersRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.send({
         success: true,
         data: player,
+      });
+    }
+  );
+
+  // DELETE /players/telegram/:telegramId - Удаление игрока по Telegram ID (для бота)
+  fastify.delete<{
+    Params: { telegramId: string };
+    Reply: ApiResponse<{ deleted: boolean }>;
+  }>(
+    '/telegram/:telegramId',
+    {
+      schema: {
+        tags: ['players'],
+        summary: 'Удалить игрока по Telegram ID (для бота)',
+      },
+    },
+    async (request, reply) => {
+      const { telegramId } = getPlayerByTelegramIdParamsSchema.parse(request.params);
+      await playerService.deleteByTelegramId(telegramId);
+
+      return reply.send({
+        success: true,
+        data: { deleted: true },
       });
     }
   );

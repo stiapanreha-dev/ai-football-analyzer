@@ -198,6 +198,41 @@ export class PlayerService {
   }
 
   /**
+   * Удаление игрока по ID
+   */
+  async delete(id: number): Promise<void> {
+    const player = await this.app.prisma.player.findUnique({
+      where: { id },
+    });
+
+    if (!player) {
+      throw new NotFoundError('Player', id);
+    }
+
+    // Удаляем игрока (каскадно удалятся сессии, отчёты и т.д.)
+    await this.app.prisma.player.delete({
+      where: { id },
+    });
+  }
+
+  /**
+   * Удаление игрока по Telegram ID (для бота)
+   */
+  async deleteByTelegramId(telegramId: bigint): Promise<void> {
+    const player = await this.app.prisma.player.findUnique({
+      where: { telegramId },
+    });
+
+    if (!player) {
+      throw new NotFoundError('Player', `telegramId:${telegramId}`);
+    }
+
+    await this.app.prisma.player.delete({
+      where: { telegramId },
+    });
+  }
+
+  /**
    * Получение сессий игрока
    */
   async getPlayerSessions(playerId: number): Promise<SessionDto[]> {

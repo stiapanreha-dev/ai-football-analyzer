@@ -70,6 +70,31 @@ export function setupStartHandlers(bot: Bot<MyContext>): void {
     });
   });
 
+  // /delete - удаление профиля
+  bot.command('delete', async (ctx) => {
+    const telegramId = getTelegramId(ctx);
+    const messages = t(ctx);
+
+    // Проверяем есть ли профиль
+    const player = await api.getPlayerByTelegramId(telegramId);
+    if (!player) {
+      await ctx.reply(messages.delete.notFound);
+      return;
+    }
+
+    // Показываем подтверждение
+    await ctx.reply(messages.delete.confirm, {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: messages.keyboards.confirmDelete, callback_data: 'confirm_delete' },
+            { text: messages.keyboards.cancel, callback_data: 'cancel_delete' },
+          ],
+        ],
+      },
+    });
+  });
+
   // /cancel - отмена
   bot.command('cancel', async (ctx) => {
     // Если есть активная сессия, прерываем её
@@ -219,5 +244,37 @@ export function setupStartHandlers(bot: Bot<MyContext>): void {
     await ctx.reply(messages.welcome, {
       reply_markup: createMainKeyboard(messages),
     });
+  });
+
+  // Callback: подтверждение удаления
+  bot.callbackQuery('confirm_delete', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const telegramId = getTelegramId(ctx);
+    const messages = t(ctx);
+
+    try {
+      await api.deletePlayer(telegramId);
+
+      // Сбрасываем сессию
+      ctx.session = initialSession();
+      ctx.session.language = messages === t(ctx) ? ctx.session.language : 'ru';
+
+      await ctx.editMessageText(messages.delete.success);
+
+      await audit.log({
+        action: AuditAction.LANGUAGE_CHANGED, // Reuse for delete action
+        telegramId,
+        data: { action: 'player_deleted' },
+      });
+    } catch (error) {
+      await ctx.editMessageText(messages.delete.notFound);
+    }
+  });
+
+  // Callback: отмена удаления
+  bot.callbackQuery('cancel_delete', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const messages = t(ctx);
+    await ctx.editMessageText(messages.delete.cancelled);
   });
 }

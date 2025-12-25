@@ -115,6 +115,10 @@ export const api = {
     return request('PATCH', `/players/telegram/${telegramId}`, data);
   },
 
+  async deletePlayer(telegramId: bigint): Promise<void> {
+    return request('DELETE', `/players/telegram/${telegramId}`);
+  },
+
   // Sessions
   async createSession(playerId: number, language: string): Promise<SessionDto> {
     return request('POST', '/sessions', { playerId, language });

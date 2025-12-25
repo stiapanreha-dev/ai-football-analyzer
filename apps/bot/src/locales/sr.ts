@@ -54,6 +54,13 @@ export const sr: Messages = {
     thankYou: '🙌 Odličan posao! Sjajno ste prošli test!\n\n📊 Rezultati će biti dostupni vašem treneru. Razgovarajte o njima na sledećem sastanku.',
   },
 
+  delete: {
+    confirm: '⚠️ Da li ste sigurni da želite da obrišete svoj profil?\n\nOva radnja se ne može poništiti. Svi vaši podaci, uključujući rezultate testova, biće obrisani.',
+    success: '✅ Vaš profil je uspešno obrisan.',
+    notFound: '❌ Profil nije pronađen. Možda još niste radili test.',
+    cancelled: '🚫 Brisanje otkazano.',
+  },
+
   errors: {
     general: '😔 Došlo je do greške. Pokušajte kasnije ili restartujte sa /start',
     notAuthorized: '🔐 Unesite PIN kod za pristup testu.',
@@ -71,5 +78,6 @@ export const sr: Messages = {
     cancel: '❌ Otkaži',
     skip: '⏭️ Preskoči',
     continue: '➡️ Nastavi',
+    confirmDelete: '🗑️ Da, obriši',
   },
 };

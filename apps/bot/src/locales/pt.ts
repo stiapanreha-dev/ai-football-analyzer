@@ -54,6 +54,13 @@ export const pt: Messages = {
     thankYou: '🙌 Ótimo trabalho! Você foi excelente no teste!\n\n📊 Os resultados estarão disponíveis para seu treinador. Discuta-os em sua próxima reunião.',
   },
 
+  delete: {
+    confirm: '⚠️ Tem certeza de que deseja excluir seu perfil?\n\nEsta ação não pode ser desfeita. Todos os seus dados, incluindo resultados de testes, serão excluídos.',
+    success: '✅ Seu perfil foi excluído com sucesso.',
+    notFound: '❌ Perfil não encontrado. Você pode ainda não ter feito o teste.',
+    cancelled: '🚫 Exclusão cancelada.',
+  },
+
   errors: {
     general: '😔 Ocorreu um erro. Tente novamente mais tarde ou reinicie com /start',
     notAuthorized: '🔐 Digite seu código PIN para acessar o teste.',
@@ -71,5 +78,6 @@ export const pt: Messages = {
     cancel: '❌ Cancelar',
     skip: '⏭️ Pular',
     continue: '➡️ Continuar',
+    confirmDelete: '🗑️ Sim, excluir',
   },
 };

@@ -21,3 +21,7 @@ export async function getPlayers(params: GetPlayersParams = {}): Promise<Paginat
 export async function getPlayer(id: number): Promise<PlayerWithStatsDto> {
   return apiRequest('GET', `/players/${id}`);
 }
+
+export async function deletePlayer(id: number): Promise<void> {
+  return apiRequest('DELETE', `/players/${id}`);
+}

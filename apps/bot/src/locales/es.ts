@@ -54,6 +54,13 @@ export const es: Messages = {
     thankYou: '🙌 ¡Buen trabajo! ¡Lo hiciste excelente en la prueba!\n\n📊 Los resultados estarán disponibles para tu entrenador. Discútelos en tu próxima reunión.',
   },
 
+  delete: {
+    confirm: '⚠️ ¿Estás seguro de que quieres eliminar tu perfil?\n\nEsta acción no se puede deshacer. Todos tus datos, incluidos los resultados de las pruebas, serán eliminados.',
+    success: '✅ Tu perfil ha sido eliminado con éxito.',
+    notFound: '❌ Perfil no encontrado. Es posible que aún no hayas realizado la prueba.',
+    cancelled: '🚫 Eliminación cancelada.',
+  },
+
   errors: {
     general: '😔 Ocurrió un error. Inténtalo más tarde o reinicia con /start',
     notAuthorized: '🔐 Introduce tu código PIN para acceder a la prueba.',
@@ -71,5 +78,6 @@ export const es: Messages = {
     cancel: '❌ Cancelar',
     skip: '⏭️ Saltar',
     continue: '➡️ Continuar',
+    confirmDelete: '🗑️ Sí, eliminar',
   },
 };

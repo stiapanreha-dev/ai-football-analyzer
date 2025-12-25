@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { Card, Table, Badge, Form, InputGroup, Pagination } from 'react-bootstrap';
+import { Card, Table, Badge, Form, InputGroup, Pagination, Button } from 'react-bootstrap';
+import { FaTrash } from 'react-icons/fa';
 
-import { usePlayers } from '@/features/players/hooks';
+import { usePlayers, useDeletePlayer } from '@/features/players/hooks';
 import { LoadingSpinner } from '@/shared/ui/LoadingSpinner';
 import { ErrorAlert } from '@/shared/ui/ErrorAlert';
+import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { formatDate, formatPosition } from '@archetypes/shared';
 
 export function PlayersListPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [position, setPosition] = useState('');
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const { data, isLoading, error, refetch } = usePlayers({
     page,
@@ -17,6 +20,16 @@ export function PlayersListPage() {
     search: search || undefined,
     position: position || undefined,
   });
+
+  const deleteMutation = useDeletePlayer();
+
+  const handleDelete = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId, {
+        onSuccess: () => setDeleteId(null),
+      });
+    }
+  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -73,6 +86,7 @@ export function PlayersListPage() {
                 <th>Номер</th>
                 <th>Сессий</th>
                 <th>Дата регистрации</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -93,11 +107,20 @@ export function PlayersListPage() {
                     <span className="text-muted small"> / {player.sessionsCount}</span>
                   </td>
                   <td>{formatDate(player.createdAt)}</td>
+                  <td>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => setDeleteId(player.id)}
+                    >
+                      <FaTrash />
+                    </Button>
+                  </td>
                 </tr>
               ))}
               {!data?.items.length && (
                 <tr>
-                  <td colSpan={6} className="text-center text-muted py-4">
+                  <td colSpan={7} className="text-center text-muted py-4">
                     Игроки не найдены
                   </td>
                 </tr>
@@ -129,6 +152,15 @@ export function PlayersListPage() {
           </Card.Footer>
         )}
       </Card>
+
+      <ConfirmModal
+        show={!!deleteId}
+        title="Удалить игрока"
+        message="Вы уверены, что хотите удалить этого игрока? Все его сессии и отчёты также будут удалены."
+        confirmLabel="Удалить"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

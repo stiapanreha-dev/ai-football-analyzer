@@ -54,6 +54,13 @@ export const no: Messages = {
     thankYou: '🙌 Flott jobbet! Du gjorde det utmerket på testen!\n\n📊 Resultatene vil være tilgjengelige for treneren din. Diskuter dem på neste møte.',
   },
 
+  delete: {
+    confirm: '⚠️ Er du sikker på at du vil slette profilen din?\n\nDenne handlingen kan ikke angres. Alle dine data, inkludert testresultater, vil bli slettet.',
+    success: '✅ Profilen din er slettet.',
+    notFound: '❌ Profil ikke funnet. Du har kanskje ikke tatt testen ennå.',
+    cancelled: '🚫 Sletting avbrutt.',
+  },
+
   errors: {
     general: '😔 Det oppstod en feil. Prøv igjen senere eller start på nytt med /start',
     notAuthorized: '🔐 Skriv inn PIN-koden din for å få tilgang til testen.',
@@ -71,5 +78,6 @@ export const no: Messages = {
     cancel: '❌ Avbryt',
     skip: '⏭️ Hopp over',
     continue: '➡️ Fortsett',
+    confirmDelete: '🗑️ Ja, slett',
   },
 };

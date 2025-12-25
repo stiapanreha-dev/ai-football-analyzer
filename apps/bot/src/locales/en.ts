@@ -54,6 +54,13 @@ export const en: Messages = {
     thankYou: '🙌 Great job! You did excellent in the test!\n\n📊 Results will be available to your coach. Discuss them at your next meeting.',
   },
 
+  delete: {
+    confirm: '⚠️ Are you sure you want to delete your profile?\n\nThis action cannot be undone. All your data, including test results, will be deleted.',
+    success: '✅ Your profile has been successfully deleted.',
+    notFound: '❌ Profile not found. You may not have taken the test yet.',
+    cancelled: '🚫 Deletion cancelled.',
+  },
+
   errors: {
     general: '😔 An error occurred. Please try again later or restart with /start',
     notAuthorized: '🔐 Please enter your PIN code to access the test.',
@@ -71,5 +78,6 @@ export const en: Messages = {
     cancel: '❌ Cancel',
     skip: '⏭️ Skip',
     continue: '➡️ Continue',
+    confirmDelete: '🗑️ Yes, delete',
   },
 };
