@@ -183,6 +183,12 @@ export interface SessionResultDto {
   playerSummary: string;
 }
 
+export interface RecommendedPosition {
+  position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff';
+  suitability: number; // Процент подходящести 0-100
+  reasoning: string; // Почему подходит эта позиция
+}
+
 export interface CoachReportDto {
   summary: string;
   strengths: string[];
@@ -190,6 +196,7 @@ export interface CoachReportDto {
   bestSituations: string[];
   riskSituations: string[];
   compatibility: Record<ArchetypeCode, number>; // Процент совместимости 0-100 для каждого архетипа
+  recommendedPositions: RecommendedPosition[]; // Рекомендуемые позиции с обоснованием
   recommendations: string[];
 }
 

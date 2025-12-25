@@ -281,6 +281,10 @@ const promptTemplates = [
     "individualist": 40,
     "avoider": 30
   },
+  "recommendedPositions": [
+    {"position": "defender", "suitability": 85, "reasoning": "почему подходит эта позиция"},
+    {"position": "midfielder", "suitability": 70, "reasoning": "почему подходит эта позиция"}
+  ],
   "recommendations": ["рекомендация тренеру 1", "рекомендация 2", ...]
 }
 
@@ -289,7 +293,13 @@ const promptTemplates = [
 - Высокий процент (70-100) = хорошая совместимость
 - Средний процент (40-69) = нейтральная совместимость
 - Низкий процент (0-39) = возможны конфликты
-- Основывай оценку на психологической совместимости поведенческих типов
+
+ВАЖНО ДЛЯ RECOMMENDED_POSITIONS:
+- Укажи 2-3 наиболее подходящие позиции на основе психологического профиля
+- Позиции: goalkeeper, defender, midfielder, forward, staff
+- suitability: процент подходящести 0-100
+- reasoning: краткое обоснование (1-2 предложения)
+- Сортируй по убыванию suitability
 
 ВСЕ ТЕКСТЫ НА РУССКОМ ЯЗЫКЕ!`,
   },

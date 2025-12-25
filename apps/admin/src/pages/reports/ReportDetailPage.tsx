@@ -276,6 +276,35 @@ export function ReportDetailPage() {
             </Card.Body>
           </Card>
 
+          {report.coachReport.recommendedPositions && report.coachReport.recommendedPositions.length > 0 && (
+            <Card className="mb-4 border-primary">
+              <Card.Header className="bg-primary text-white">
+                <strong>Рекомендуемые позиции</strong>
+              </Card.Header>
+              <Card.Body>
+                {report.coachReport.recommendedPositions.map((rec, i) => {
+                  const variant = rec.suitability >= 70 ? 'success' : rec.suitability >= 40 ? 'warning' : 'secondary';
+                  return (
+                    <div key={i} className="mb-3">
+                      <div className="d-flex justify-content-between mb-1">
+                        <span className="fw-bold">
+                          {positionLabels[rec.position] ?? rec.position}
+                        </span>
+                        <Badge bg={variant}>{rec.suitability}%</Badge>
+                      </div>
+                      <ProgressBar
+                        now={rec.suitability}
+                        variant={variant}
+                        style={{ height: '8px' }}
+                      />
+                      <p className="text-muted small mt-1 mb-0">{rec.reasoning}</p>
+                    </div>
+                  );
+                })}
+              </Card.Body>
+            </Card>
+          )}
+
           <Card className="mb-4 border-info">
             <Card.Header className="bg-info text-white">
               <strong>Рекомендации тренеру</strong>

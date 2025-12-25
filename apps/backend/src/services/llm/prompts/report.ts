@@ -1,5 +1,11 @@
 import type { ArchetypeCode } from '@archetypes/shared';
 
+export interface RecommendedPositionResult {
+  position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff';
+  suitability: number;
+  reasoning: string;
+}
+
 export interface CoachReportResult {
   summary: string;
   strengths: string[];
@@ -7,6 +13,7 @@ export interface CoachReportResult {
   bestSituations: string[];
   riskSituations: string[];
   compatibility: Record<ArchetypeCode, number>; // Процент совместимости 0-100 для каждого архетипа
+  recommendedPositions: RecommendedPositionResult[];
   recommendations: string[];
 }
 
