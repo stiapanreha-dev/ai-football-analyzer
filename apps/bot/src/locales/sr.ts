@@ -25,6 +25,7 @@ export const sr: Messages = {
       defender: '🛡️ Odbrana',
       midfielder: '⚡ Vezni',
       forward: '⚽ Napadač',
+      staff: '👔 Stručni štab',
     },
     complete: '✅ Odlično! Registracija završena.',
     welcomeBack: (name: string) => `👋 Dobrodošli nazad, ${name}!`,

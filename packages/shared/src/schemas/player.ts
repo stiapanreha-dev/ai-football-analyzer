@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const playerPositionSchema = z.enum(['goalkeeper', 'defender', 'midfielder', 'forward']);
+export const playerPositionSchema = z.enum(['goalkeeper', 'defender', 'midfielder', 'forward', 'staff']);
 
 export const createPlayerSchema = z.object({
   telegramId: z.union([z.bigint(), z.number().int().positive()]),

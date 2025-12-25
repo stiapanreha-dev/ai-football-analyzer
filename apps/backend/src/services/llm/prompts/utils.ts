@@ -77,6 +77,16 @@ export function getPositionName(position: PlayerPosition, language: Language): s
       sr: 'нападач',
       no: 'angriper',
     },
+    staff: {
+      ru: 'тренерский штаб',
+      en: 'coaching staff',
+      es: 'cuerpo técnico',
+      fr: 'staff technique',
+      pt: 'comissão técnica',
+      el: 'τεχνικό επιτελείο',
+      sr: 'стручни штаб',
+      no: 'trenerteam',
+    },
   };
   const positionTranslations = positions[position];
   return positionTranslations?.[language] ?? position;

@@ -53,7 +53,7 @@ export async function registrationConversation(
   const positionResponse = await conversation.waitForCallbackQuery(/^position_(.+)$/);
   await positionResponse.answerCallbackQuery();
 
-  const position = positionResponse.match[1] as 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
+  const position = positionResponse.match[1] as 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff';
   conversation.session.registration = { name, position };
 
   await conversation.external(() =>

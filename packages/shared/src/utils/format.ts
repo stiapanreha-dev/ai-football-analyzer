@@ -95,13 +95,14 @@ export function formatPinCode(code: string): string {
  * Форматировать позицию игрока на русском
  */
 export function formatPosition(
-  position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | null
+  position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff' | null
 ): string {
   const positions: Record<string, string> = {
     goalkeeper: 'Вратарь',
     defender: 'Защитник',
     midfielder: 'Полузащитник',
     forward: 'Нападающий',
+    staff: 'Тренерский штаб',
   };
   return position ? positions[position] ?? position : 'Не указана';
 }

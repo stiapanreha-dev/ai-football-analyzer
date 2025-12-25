@@ -25,6 +25,7 @@ export const en: Messages = {
       defender: '🛡️ Defender',
       midfielder: '⚡ Midfielder',
       forward: '⚽ Forward',
+      staff: '👔 Coaching Staff',
     },
     complete: '✅ Great! Registration complete.',
     welcomeBack: (name: string) => `👋 Welcome back, ${name}!`,

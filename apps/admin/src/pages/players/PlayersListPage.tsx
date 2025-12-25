@@ -56,6 +56,7 @@ export function PlayersListPage() {
               <option value="defender">Защитник</option>
               <option value="midfielder">Полузащитник</option>
               <option value="forward">Нападающий</option>
+              <option value="staff">Тренерский штаб</option>
             </Form.Select>
           </div>
         </Card.Body>

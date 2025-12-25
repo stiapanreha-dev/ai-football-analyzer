@@ -31,6 +31,7 @@ const positionLabels: Record<string, string> = {
   defender: 'Защитник',
   midfielder: 'Полузащитник',
   forward: 'Нападающий',
+  staff: 'Тренерский штаб',
 };
 
 export function ReportDetailPage() {

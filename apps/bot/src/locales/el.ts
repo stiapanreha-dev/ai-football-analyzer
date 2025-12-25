@@ -25,6 +25,7 @@ export const el: Messages = {
       defender: '🛡️ Αμυντικός',
       midfielder: '⚡ Μέσος',
       forward: '⚽ Επιθετικός',
+      staff: '👔 Τεχνικό επιτελείο',
     },
     complete: '✅ Τέλεια! Η εγγραφή ολοκληρώθηκε.',
     welcomeBack: (name: string) => `👋 Καλώς ήρθατε πίσω, ${name}!`,

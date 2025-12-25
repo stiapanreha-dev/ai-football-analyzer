@@ -25,6 +25,7 @@ export const pt: Messages = {
       defender: '🛡️ Defensor',
       midfielder: '⚡ Meio-campista',
       forward: '⚽ Atacante',
+      staff: '👔 Comissão técnica',
     },
     complete: '✅ Ótimo! Registro concluído.',
     welcomeBack: (name: string) => `👋 Bem-vindo de volta, ${name}!`,

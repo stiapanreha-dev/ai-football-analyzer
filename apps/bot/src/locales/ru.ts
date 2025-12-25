@@ -26,6 +26,7 @@ export const ru = {
       defender: '🛡️ Защитник',
       midfielder: '🏃 Полузащитник',
       forward: '⚽ Нападающий',
+      staff: '👔 Тренерский штаб',
     },
     complete: '🥅 Отлично! Регистрация завершена.',
     welcomeBack: (name: string) => `🤝 С возвращением, ${name}!`,

@@ -25,6 +25,7 @@ export const es: Messages = {
       defender: '🛡️ Defensa',
       midfielder: '⚡ Centrocampista',
       forward: '⚽ Delantero',
+      staff: '👔 Cuerpo técnico',
     },
     complete: '✅ ¡Genial! Registro completado.',
     welcomeBack: (name: string) => `👋 ¡Bienvenido de nuevo, ${name}!`,

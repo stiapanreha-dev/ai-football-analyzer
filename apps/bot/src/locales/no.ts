@@ -25,6 +25,7 @@ export const no: Messages = {
       defender: '🛡️ Forsvar',
       midfielder: '⚡ Midtbane',
       forward: '⚽ Angrep',
+      staff: '👔 Trenerteam',
     },
     complete: '✅ Flott! Registrering fullført.',
     welcomeBack: (name: string) => `👋 Velkommen tilbake, ${name}!`,

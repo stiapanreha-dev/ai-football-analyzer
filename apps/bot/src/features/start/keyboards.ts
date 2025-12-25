@@ -36,7 +36,9 @@ export function createPositionKeyboard(messages: Messages): InlineKeyboard {
     .text(messages.registration.positions.defender, 'position_defender')
     .row()
     .text(messages.registration.positions.midfielder, 'position_midfielder')
-    .text(messages.registration.positions.forward, 'position_forward');
+    .text(messages.registration.positions.forward, 'position_forward')
+    .row()
+    .text(messages.registration.positions.staff, 'position_staff');
 }
 
 export function createCancelKeyboard(messages: Messages): InlineKeyboard {

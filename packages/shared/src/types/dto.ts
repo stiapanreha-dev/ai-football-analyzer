@@ -8,13 +8,13 @@ import type { ArchetypeCode } from '../constants/archetypes.js';
 export interface CreatePlayerDto {
   telegramId: bigint | number;
   name?: string;
-  position?: 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
+  position?: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff';
   jerseyNumber?: number;
 }
 
 export interface UpdatePlayerDto {
   name?: string;
-  position?: 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
+  position?: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff';
   jerseyNumber?: number;
 }
 
@@ -22,7 +22,7 @@ export interface PlayerDto {
   id: number;
   telegramId: string;
   name: string | null;
-  position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | null;
+  position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff' | null;
   jerseyNumber: number | null;
   createdAt: string;
 }
@@ -45,7 +45,7 @@ export interface CreatePinDto {
   expiresInHours?: number;
   // Поля для именного PIN (type = personal)
   playerName?: string;
-  playerPosition?: 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
+  playerPosition?: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff';
   playerJerseyNumber?: number;
 }
 
@@ -60,7 +60,7 @@ export interface PinDto {
   createdAt: string;
   // Поля для именного PIN
   playerName: string | null;
-  playerPosition: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | null;
+  playerPosition: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff' | null;
   playerJerseyNumber: number | null;
 }
 
@@ -77,7 +77,7 @@ export interface ValidatePinResultDto {
   // Данные для автозаполнения из именного PIN
   playerData?: {
     name: string;
-    position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
+    position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff';
     jerseyNumber?: number;
   };
 }
