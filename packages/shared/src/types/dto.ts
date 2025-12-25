@@ -215,6 +215,92 @@ export interface ReportWithPlayerDto extends ReportDto {
 }
 
 // =============================================================================
+// Team DTOs
+// =============================================================================
+
+export interface CreateTeamDto {
+  name: string;
+  description?: string;
+  playerIds?: number[];
+}
+
+export interface UpdateTeamDto {
+  name?: string;
+  description?: string | null;
+}
+
+export interface TeamPlayerDto {
+  id: number;
+  name: string | null;
+  position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff' | null;
+  jerseyNumber: number | null;
+  hasReport: boolean;              // Есть ли готовый отчёт
+  dominantArchetype?: ArchetypeCode;
+}
+
+export interface TeamDto {
+  id: number;
+  name: string;
+  description: string | null;
+  playersCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeamWithPlayersDto extends TeamDto {
+  players: TeamPlayerDto[];
+}
+
+// =============================================================================
+// Tactical Analysis DTOs
+// =============================================================================
+
+export type TacticalStyle =
+  | 'high_press'      // Агрессивно-прессинговый
+  | 'reactive'        // Агрессивно-оборонительный
+  | 'positional'      // Позиционный
+  | 'direct'          // Вертикальный
+  | 'adaptive';       // Гибридный
+
+export const TACTICAL_STYLE_NAMES: Record<TacticalStyle, string> = {
+  high_press: 'Агрессивно-прессинговый',
+  reactive: 'Агрессивно-оборонительный',
+  positional: 'Позиционный',
+  direct: 'Вертикальный',
+  adaptive: 'Гибридный / Адаптивный',
+};
+
+export interface TacticalStyleRecommendation {
+  style: TacticalStyle;
+  styleName: string;              // Название на русском
+  suitability: number;            // Процент совместимости 0-100
+  reasoning: string;              // Почему подходит
+  pros: string[];                 // Плюсы для этой команды
+  cons: string[];                 // Минусы/риски
+  keyPlayers: string[];           // Ключевые игроки для этого стиля
+}
+
+export interface TeamArchetypeProfile {
+  archetypeCode: ArchetypeCode;
+  archetypeName: string;
+  averageScore: number;           // Средний балл по команде
+  playerCount: number;            // Кол-во игроков с этим архетипом как доминирующим
+}
+
+export interface TeamReportDto {
+  id: number;
+  teamId: number;
+  teamName: string;
+  teamProfile: TeamArchetypeProfile[];
+  recommendations: TacticalStyleRecommendation[];
+  dominantArchetypes: ArchetypeCode[];
+  weakArchetypes: ArchetypeCode[];
+  overallAssessment: string;
+  analyzedPlayersCount: number;
+  createdAt: string;
+}
+
+// =============================================================================
 // Dashboard DTOs
 // =============================================================================
 
@@ -245,6 +331,7 @@ export const PROMPT_KEYS = [
   'prompt_alternative_response',
   'prompt_player_report',
   'prompt_coach_report',
+  'prompt_tactical_analysis',
 ] as const;
 
 export type PromptKey = (typeof PROMPT_KEYS)[number];
@@ -256,6 +343,7 @@ export const PROMPT_LABELS: Record<PromptKey, string> = {
   prompt_alternative_response: 'Альтернативные ответы',
   prompt_player_report: 'Отчёт игроку',
   prompt_coach_report: 'Отчёт тренеру',
+  prompt_tactical_analysis: 'Тактический анализ команды',
 };
 
 export const PROMPT_PLACEHOLDERS: Record<PromptKey, string[]> = {
@@ -286,6 +374,12 @@ export const PROMPT_PLACEHOLDERS: Record<PromptKey, string[]> = {
   ],
   prompt_player_report: ['{{PLAYER_INFO}}', '{{SCORES}}', '{{ARCHETYPE_DETAILS}}', '{{LANGUAGE_INSTRUCTION}}'],
   prompt_coach_report: ['{{PLAYER_INFO}}', '{{POSITION_INFO}}', '{{SCORES}}', '{{ARCHETYPE_DETAILS}}'],
+  prompt_tactical_analysis: [
+    '{{TEAM_NAME}}',
+    '{{PLAYERS_PROFILES}}',
+    '{{TEAM_AVERAGE_SCORES}}',
+    '{{ARCHETYPE_DETAILS}}',
+  ],
 };
 
 export interface PromptDto {

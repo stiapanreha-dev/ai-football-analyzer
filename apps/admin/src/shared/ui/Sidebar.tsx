@@ -10,6 +10,7 @@ import {
   FaRobot,
   FaClipboardList,
   FaCog,
+  FaUserFriends,
 } from 'react-icons/fa';
 
 interface NavItem {
@@ -21,6 +22,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { path: '/', label: 'Дашборд', icon: <FaChartPie /> },
   { path: '/players', label: 'Игроки', icon: <FaUsers /> },
+  { path: '/teams', label: 'Команды', icon: <FaUserFriends /> },
   { path: '/sessions', label: 'Сессии', icon: <FaPlay /> },
   { path: '/reports', label: 'Отчёты', icon: <FaFileAlt /> },
   { path: '/pins', label: 'PIN-коды', icon: <FaKey /> },

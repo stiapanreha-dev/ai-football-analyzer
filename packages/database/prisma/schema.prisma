@@ -93,11 +93,55 @@ model Player {
   jerseyNumber Int?            @map("jersey_number")
   createdAt    DateTime        @default(now()) @map("created_at")
 
-  sessions  Session[]
-  pinUsages PinUsage[]
-  auditLogs AuditLog[]
+  sessions    Session[]
+  pinUsages   PinUsage[]
+  auditLogs   AuditLog[]
+  teamPlayers TeamPlayer[]
 
   @@map("players")
+}
+
+/// Команда - группа игроков для тактического анализа
+model Team {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  players TeamPlayer[]
+  reports TeamReport[]
+
+  @@map("teams")
+}
+
+/// Связь игрок-команда (many-to-many)
+model TeamPlayer {
+  id        Int      @id @default(autoincrement())
+  teamId    Int      @map("team_id")
+  playerId  Int      @map("player_id")
+  addedAt   DateTime @default(now()) @map("added_at")
+
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, playerId])
+  @@map("team_players")
+}
+
+/// Тактический отчёт команды
+model TeamReport {
+  id             Int      @id @default(autoincrement())
+  teamId         Int      @map("team_id")
+  teamProfile    Json     @map("team_profile")      // Агрегированный профиль команды
+  recommendations Json    @map("recommendations")   // Рекомендации по тактике
+  overallAssessment String @map("overall_assessment")
+  analyzedPlayersCount Int @map("analyzed_players_count")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("team_reports")
 }
 
 /// Архетип - один из 7 поведенческих типов

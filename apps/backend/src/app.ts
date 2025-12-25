@@ -21,6 +21,7 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import { auditRoutes } from './modules/audit/audit.routes.js';
 import promptsRoutes from './modules/prompts/prompt.routes.js';
 import sttRoutes from './services/stt/stt.routes.js';
+import teamsRoutes from './modules/teams/team.routes.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -64,6 +65,7 @@ export async function buildApp() {
       await api.register(playersRoutes, { prefix: '/players' });
       await api.register(sessionsRoutes, { prefix: '/sessions' });
       await api.register(reportsRoutes, { prefix: '/reports' });
+      await api.register(teamsRoutes, { prefix: '/teams' });
       await api.register(dashboardRoutes, { prefix: '/dashboard' });
       await api.register(auditRoutes, { prefix: '/audit' });
       await api.register(promptsRoutes, { prefix: '/prompts' });

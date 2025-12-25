@@ -37,6 +37,17 @@ const TEST_DATA: Record<string, string> = {
 Исполнитель: 5.5 (moderate)
 Индивидуалист: 3.0 (weak)
 Избегающий: 1.5 (absent)`,
+  '{{TEAM_NAME}}': 'ФК Тестовая Команда',
+  '{{PLAYERS_PROFILES}}': `- Иван Петров (midfielder): доминирующий архетип "Воин", баллы: Воин: 8.2, Лидер: 7.5, Стратег: 6.0
+- Алексей Сидоров (defender): доминирующий архетип "Исполнитель", баллы: Исполнитель: 8.0, Стратег: 7.0, Дипломат: 6.5
+- Михаил Козлов (forward): доминирующий архетип "Индивидуалист", баллы: Индивидуалист: 7.5, Воин: 7.0, Лидер: 5.5`,
+  '{{TEAM_AVERAGE_SCORES}}': `- Лидер: 6.2 (1 доминант.)
+- Воин: 7.4 (1 доминант.)
+- Стратег: 6.3 (0 доминант.)
+- Дипломат: 5.0 (0 доминант.)
+- Исполнитель: 6.8 (1 доминант.)
+- Индивидуалист: 5.5 (1 доминант.)
+- Избегающий: 2.1 (0 доминант.)`,
 };
 
 export class PromptService {
@@ -113,6 +124,7 @@ export class PromptService {
       prompt_alternative_response: 0.7,
       prompt_player_report: 0.6,
       prompt_coach_report: 0.4,
+      prompt_tactical_analysis: 0.5,
     };
 
     const temperature = temperatureMap[key];
