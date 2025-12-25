@@ -165,8 +165,8 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
       .replace('{{TEAM_AVERAGE_SCORES}}', buildTeamAverageScoresText(teamProfile))
       .replace('{{ARCHETYPE_DETAILS}}', buildArchetypeDetailsText());
 
-    // Call LLM
-    const response = await complete(prompt);
+    // Call LLM with higher token limit for large JSON response
+    const response = await complete(prompt, { maxTokens: 4096, temperature: 0.5 });
 
     // Parse response
     const jsonMatch = response.match(/\{[\s\S]*\}/);

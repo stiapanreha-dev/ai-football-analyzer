@@ -38,9 +38,21 @@ export async function complete(
       ],
     });
 
-    const content = response.choices[0]?.message?.content;
+    const choice = response.choices[0];
+    const content = choice?.message?.content;
+
     if (!content) {
-      throw new LLMError('No text response from OpenAI');
+      // Log detailed info for debugging
+      logger.error({
+        finishReason: choice?.finish_reason,
+        refusal: choice?.message?.refusal,
+        usage: response.usage,
+      }, 'OpenAI returned empty content');
+
+      throw new LLMError('No text response from OpenAI', {
+        finishReason: choice?.finish_reason,
+        refusal: choice?.message?.refusal,
+      });
     }
 
     logger.debug(
