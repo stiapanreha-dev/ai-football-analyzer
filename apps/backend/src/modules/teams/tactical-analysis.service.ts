@@ -8,8 +8,8 @@ import type {
 } from '@archetypes/shared';
 import { ARCHETYPES } from '@archetypes/shared';
 
-import { NotFoundError, ValidationError } from '@/utils/errors.js';
-import { complete } from '@/services/llm/openai.provider.js';
+import { NotFoundError, ValidationError } from '../../utils/errors.js';
+import { complete } from '../../services/llm/openai.provider.js';
 
 interface LLMTacticalResponse {
   overallAssessment: string;

@@ -10,7 +10,7 @@ import type {
   ArchetypeCode,
 } from '@archetypes/shared';
 
-import { NotFoundError } from '@/utils/errors.js';
+import { NotFoundError } from '../../utils/errors.js';
 
 import type { GetTeamsQuery } from './team.schemas.js';
 
