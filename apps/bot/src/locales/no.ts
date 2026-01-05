@@ -81,4 +81,10 @@ export const no: Messages = {
     continue: '➡️ Fortsett',
     confirmDelete: '🗑️ Ja, slett',
   },
+
+  wave: {
+    notification: (teamName: string) => `🏟️ Laget "${teamName}" har startet en ny testbølge!\n\nKlikk på knappen nedenfor for å ta testen.`,
+    startTestButton: '⚽ Ta Test',
+    alreadyStarted: '🔄 Du har allerede startet testingen. Fortsett din nåværende økt.',
+  },
 };

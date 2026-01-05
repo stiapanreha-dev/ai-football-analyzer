@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Badge, Table, Button, Modal, Form, Spinner, ListGroup } from 'react-bootstrap';
-import { FaCheck, FaTimes, FaPlus, FaTrash, FaChartBar } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaPlus, FaTrash, FaChartBar, FaChartLine, FaBroadcastTower } from 'react-icons/fa';
 
-import { useTeam, useAddPlayersToTeam, useRemovePlayersFromTeam, useGenerateTeamReport, useTeamReports } from '@/features/teams/hooks';
+import { useTeam, useAddPlayersToTeam, useRemovePlayersFromTeam, useGenerateTeamReport, useTeamReports, useTeamWaves, useCreateTeamWave } from '@/features/teams/hooks';
 import { usePlayers } from '@/features/players/hooks';
 import { LoadingSpinner } from '@/shared/ui/LoadingSpinner';
 import { ErrorAlert } from '@/shared/ui/ErrorAlert';
@@ -31,9 +31,12 @@ export function TeamDetailPage() {
   const { data: allPlayers } = usePlayers({ pageSize: 100 });
   const { data: reports } = useTeamReports(teamId);
 
+  const { data: waves } = useTeamWaves(teamId);
+
   const addPlayersMutation = useAddPlayersToTeam();
   const removePlayerMutation = useRemovePlayersFromTeam();
   const generateReportMutation = useGenerateTeamReport();
+  const createWaveMutation = useCreateTeamWave();
 
   const handleAddPlayers = () => {
     if (selectedPlayerIds.length > 0) {
@@ -68,6 +71,17 @@ export function TeamDetailPage() {
     });
   };
 
+  const handleCreateWave = () => {
+    createWaveMutation.mutate(
+      { teamId },
+      {
+        onSuccess: (wave) => {
+          navigate(`/teams/${teamId}/waves/${wave.id}`);
+        },
+      }
+    );
+  };
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -86,6 +100,29 @@ export function TeamDetailPage() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">{team.name}</h4>
         <div className="d-flex gap-2">
+          <Button
+            variant="primary"
+            onClick={handleCreateWave}
+            disabled={createWaveMutation.isPending || team.players.length === 0}
+          >
+            {createWaveMutation.isPending ? (
+              <>
+                <Spinner size="sm" className="me-2" />
+                Создание...
+              </>
+            ) : (
+              <>
+                <FaBroadcastTower className="me-2" />
+                Новая волна
+              </>
+            )}
+          </Button>
+          <Link to={`/teams/${teamId}/dynamics`}>
+            <Button variant="outline-info">
+              <FaChartLine className="me-2" />
+              Динамика
+            </Button>
+          </Link>
           <Button
             variant="success"
             onClick={handleGenerateReport}
@@ -196,6 +233,44 @@ export function TeamDetailPage() {
         </Col>
 
         <Col md={4}>
+          <Card className="mb-3">
+            <Card.Header>
+              <strong>Волны тестирования</strong>
+            </Card.Header>
+            <ListGroup variant="flush">
+              {waves?.map((wave) => {
+                const statusBadge = {
+                  draft: { bg: 'secondary', label: 'Черновик' },
+                  active: { bg: 'primary', label: 'Активна' },
+                  completed: { bg: 'success', label: 'Завершена' },
+                  cancelled: { bg: 'danger', label: 'Отменена' },
+                }[wave.status] ?? { bg: 'secondary', label: wave.status };
+
+                return (
+                  <ListGroup.Item
+                    key={wave.id}
+                    action
+                    as={Link}
+                    to={`/teams/${teamId}/waves/${wave.id}`}
+                  >
+                    <div className="d-flex justify-content-between">
+                      <span>{wave.name ?? `Волна #${wave.id}`}</span>
+                      <Badge bg={statusBadge.bg}>{statusBadge.label}</Badge>
+                    </div>
+                    <small className="text-muted">
+                      {wave.completedCount}/{wave.participantsCount} прошли
+                    </small>
+                  </ListGroup.Item>
+                );
+              })}
+              {!waves?.length && (
+                <ListGroup.Item className="text-muted text-center">
+                  Волны не созданы
+                </ListGroup.Item>
+              )}
+            </ListGroup>
+          </Card>
+
           <Card>
             <Card.Header>
               <strong>Тактические отчёты</strong>

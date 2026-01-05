@@ -18,6 +18,8 @@ import {
 } from './team.schemas.js';
 import { createTeamService } from './team.service.js';
 import { createTacticalAnalysisService } from './tactical-analysis.service.js';
+import waveRoutes from './wave.routes.js';
+import dynamicsRoutes from './dynamics.routes.js';
 
 const teamsRoutes: FastifyPluginAsync = async (fastify) => {
   const teamService = createTeamService(fastify);
@@ -273,6 +275,12 @@ const teamsRoutes: FastifyPluginAsync = async (fastify) => {
       });
     }
   );
+
+  // Wave routes (волны тестирования)
+  await fastify.register(waveRoutes);
+
+  // Dynamics routes (анализ динамики)
+  await fastify.register(dynamicsRoutes);
 };
 
 export default teamsRoutes;

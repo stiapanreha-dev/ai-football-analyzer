@@ -81,4 +81,10 @@ export const sr: Messages = {
     continue: '➡️ Nastavi',
     confirmDelete: '🗑️ Da, obriši',
   },
+
+  wave: {
+    notification: (teamName: string) => `🏟️ Tim "${teamName}" je pokrenuo novi talas testiranja!\n\nKliknite na dugme ispod da uradite test.`,
+    startTestButton: '⚽ Uradi Test',
+    alreadyStarted: '🔄 Već ste započeli testiranje. Nastavite sa trenutnom sesijom.',
+  },
 };

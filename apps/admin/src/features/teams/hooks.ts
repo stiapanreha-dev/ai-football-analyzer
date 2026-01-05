@@ -12,6 +12,13 @@ import {
   generateTeamReport,
   getTeamReports,
   getTeamReport,
+  getTeamWaves,
+  getTeamWave,
+  createTeamWave,
+  startTeamWave,
+  completeTeamWave,
+  cancelTeamWave,
+  getTeamDynamics,
   type GetTeamsParams,
 } from './api';
 
@@ -112,5 +119,77 @@ export function useTeamReport(teamId: number, reportId: number) {
     queryKey: ['teams', teamId, 'reports', reportId],
     queryFn: () => getTeamReport(teamId, reportId),
     enabled: !!teamId && !!reportId,
+  });
+}
+
+// Wave hooks
+export function useTeamWaves(teamId: number) {
+  return useQuery({
+    queryKey: ['teams', teamId, 'waves'],
+    queryFn: () => getTeamWaves(teamId),
+    enabled: !!teamId,
+  });
+}
+
+export function useTeamWave(teamId: number, waveId: number) {
+  return useQuery({
+    queryKey: ['teams', teamId, 'waves', waveId],
+    queryFn: () => getTeamWave(teamId, waveId),
+    enabled: !!teamId && !!waveId,
+  });
+}
+
+export function useCreateTeamWave() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ teamId, name }: { teamId: number; name?: string }) => createTeamWave(teamId, name),
+    onSuccess: (_, { teamId }) => {
+      queryClient.invalidateQueries({ queryKey: ['teams', teamId, 'waves'] });
+    },
+  });
+}
+
+export function useStartTeamWave() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ teamId, waveId }: { teamId: number; waveId: number }) => startTeamWave(teamId, waveId),
+    onSuccess: (_, { teamId, waveId }) => {
+      queryClient.invalidateQueries({ queryKey: ['teams', teamId, 'waves'] });
+      queryClient.invalidateQueries({ queryKey: ['teams', teamId, 'waves', waveId] });
+    },
+  });
+}
+
+export function useCompleteTeamWave() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ teamId, waveId }: { teamId: number; waveId: number }) => completeTeamWave(teamId, waveId),
+    onSuccess: (_, { teamId, waveId }) => {
+      queryClient.invalidateQueries({ queryKey: ['teams', teamId, 'waves'] });
+      queryClient.invalidateQueries({ queryKey: ['teams', teamId, 'waves', waveId] });
+    },
+  });
+}
+
+export function useCancelTeamWave() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ teamId, waveId }: { teamId: number; waveId: number }) => cancelTeamWave(teamId, waveId),
+    onSuccess: (_, { teamId }) => {
+      queryClient.invalidateQueries({ queryKey: ['teams', teamId, 'waves'] });
+    },
+  });
+}
+
+// Dynamics hooks
+export function useTeamDynamics(teamId: number) {
+  return useQuery({
+    queryKey: ['teams', teamId, 'dynamics'],
+    queryFn: () => getTeamDynamics(teamId),
+    enabled: !!teamId,
   });
 }

@@ -6,6 +6,9 @@ import type {
   TeamReportDto,
   CreateTeamDto,
   UpdateTeamDto,
+  TestWaveDto,
+  TestWaveDetailDto,
+  TeamDynamicsDto,
 } from '@archetypes/shared';
 
 export interface GetTeamsParams {
@@ -57,4 +60,34 @@ export async function getTeamReports(teamId: number): Promise<TeamReportDto[]> {
 
 export async function getTeamReport(teamId: number, reportId: number): Promise<TeamReportDto> {
   return apiRequest('GET', `/teams/${teamId}/reports/${reportId}`);
+}
+
+// Wave API
+export async function getTeamWaves(teamId: number): Promise<TestWaveDto[]> {
+  return apiRequest('GET', `/teams/${teamId}/waves`);
+}
+
+export async function getTeamWave(teamId: number, waveId: number): Promise<TestWaveDetailDto> {
+  return apiRequest('GET', `/teams/${teamId}/waves/${waveId}`);
+}
+
+export async function createTeamWave(teamId: number, name?: string): Promise<TestWaveDetailDto> {
+  return apiRequest('POST', `/teams/${teamId}/waves`, { name });
+}
+
+export async function startTeamWave(teamId: number, waveId: number): Promise<TestWaveDetailDto> {
+  return apiRequest('POST', `/teams/${teamId}/waves/${waveId}/start`);
+}
+
+export async function completeTeamWave(teamId: number, waveId: number): Promise<TestWaveDetailDto> {
+  return apiRequest('POST', `/teams/${teamId}/waves/${waveId}/complete`);
+}
+
+export async function cancelTeamWave(teamId: number, waveId: number): Promise<void> {
+  return apiRequest('DELETE', `/teams/${teamId}/waves/${waveId}`);
+}
+
+// Dynamics API
+export async function getTeamDynamics(teamId: number): Promise<TeamDynamicsDto> {
+  return apiRequest('GET', `/teams/${teamId}/dynamics`);
 }

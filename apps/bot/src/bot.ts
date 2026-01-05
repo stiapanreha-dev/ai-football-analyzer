@@ -12,9 +12,11 @@ import { errorHandler } from './middleware/error.js';
 
 // Features
 import { setupStartFeature } from './features/start/index.js';
+import { setupWaveFeature } from './features/wave/index.js';
 import { pinConversation } from './features/pin/conversation.js';
 import { registrationConversation } from './features/registration/conversation.js';
 import { sessionConversation } from './features/session/conversation.js';
+import { startPushListener, stopPushListener } from './services/push-listener.js';
 
 // Таймаут для Redis операций
 const REDIS_TIMEOUT = 5_000; // 5 сек
@@ -104,8 +106,14 @@ export async function createBot(): Promise<Bot<MyContext>> {
 
   // Features
   setupStartFeature(bot);
+  setupWaveFeature(bot);
+
+  // Push listener для уведомлений из backend
+  startPushListener(bot);
 
   logger.info('Bot created and configured');
 
   return bot;
 }
+
+export { stopPushListener };

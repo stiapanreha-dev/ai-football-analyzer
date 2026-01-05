@@ -81,4 +81,10 @@ export const pt: Messages = {
     continue: '➡️ Continuar',
     confirmDelete: '🗑️ Sim, excluir',
   },
+
+  wave: {
+    notification: (teamName: string) => `🏟️ A equipe "${teamName}" iniciou uma nova onda de testes!\n\nClique no botão abaixo para fazer o teste.`,
+    startTestButton: '⚽ Fazer Teste',
+    alreadyStarted: '🔄 Você já começou os testes. Continue sua sessão atual.',
+  },
 };

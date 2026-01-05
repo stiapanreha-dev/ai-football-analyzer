@@ -80,6 +80,13 @@ enum SituationContext {
   failure    // неудача
 }
 
+enum TestWaveStatus {
+  draft      // Создана, но не запущена
+  active     // Push отправлен, ждём прохождения
+  completed  // Волна завершена
+  cancelled  // Отменена
+}
+
 // =============================================================================
 // MODELS
 // =============================================================================
@@ -93,10 +100,11 @@ model Player {
   jerseyNumber Int?            @map("jersey_number")
   createdAt    DateTime        @default(now()) @map("created_at")
 
-  sessions    Session[]
-  pinUsages   PinUsage[]
-  auditLogs   AuditLog[]
-  teamPlayers TeamPlayer[]
+  sessions           Session[]
+  pinUsages          PinUsage[]
+  auditLogs          AuditLog[]
+  teamPlayers        TeamPlayer[]
+  waveParticipations TestWaveParticipation[]
 
   @@map("players")
 }
@@ -109,8 +117,9 @@ model Team {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
-  players TeamPlayer[]
-  reports TeamReport[]
+  players   TeamPlayer[]
+  reports   TeamReport[]
+  testWaves TestWave[]
 
   @@map("teams")
 }
@@ -140,9 +149,46 @@ model TeamReport {
   extendedAnalysis Json?  @map("extended_analysis") // Расширенный анализ (9 разделов)
   createdAt      DateTime @default(now()) @map("created_at")
 
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team     Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  testWave TestWave?
 
   @@map("team_reports")
+}
+
+/// Волна тестирования команды
+model TestWave {
+  id            Int            @id @default(autoincrement())
+  teamId        Int            @map("team_id")
+  name          String?
+  status        TestWaveStatus @default(draft)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  startedAt     DateTime?      @map("started_at")
+  completedAt   DateTime?      @map("completed_at")
+  teamReportId  Int?           @unique @map("team_report_id")
+
+  team           Team                    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamReport     TeamReport?             @relation(fields: [teamReportId], references: [id])
+  participations TestWaveParticipation[]
+
+  @@map("test_waves")
+}
+
+/// Участие игрока в волне тестирования
+model TestWaveParticipation {
+  id         Int       @id @default(autoincrement())
+  waveId     Int       @map("wave_id")
+  playerId   Int       @map("player_id")
+  sessionId  String?   @unique @map("session_id")
+  notified   Boolean   @default(false)
+  notifiedAt DateTime? @map("notified_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  wave    TestWave @relation(fields: [waveId], references: [id], onDelete: Cascade)
+  player  Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  session Session? @relation(fields: [sessionId], references: [id])
+
+  @@unique([waveId, playerId])
+  @@map("test_wave_participations")
 }
 
 /// Архетип - один из 7 поведенческих типов
@@ -210,11 +256,12 @@ model Session {
   completedAt       DateTime?     @map("completed_at")
   createdAt         DateTime      @default(now()) @map("created_at")
 
-  player     Player          @relation(fields: [playerId], references: [id])
-  situations Situation[]
-  results    SessionResult[]
-  report     Report?
-  pinUsages  PinUsage[]
+  player            Player                  @relation(fields: [playerId], references: [id])
+  situations        Situation[]
+  results           SessionResult[]
+  report            Report?
+  pinUsages         PinUsage[]
+  waveParticipation TestWaveParticipation?
 
   @@map("sessions")
 }

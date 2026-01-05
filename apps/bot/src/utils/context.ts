@@ -25,6 +25,8 @@ export interface SessionData {
   pinAttempts?: number | undefined;
   /** Следующий шаг после выхода из conversation */
   nextStep?: 'registration' | 'session' | undefined;
+  /** ID волны тестирования (если сессия из волны) */
+  waveId?: number | undefined;
 }
 
 /**

@@ -549,3 +549,98 @@ export interface TestPromptResultDto {
   result: string;
   tokensUsed?: number;
 }
+
+// =============================================================================
+// Test Wave DTOs
+// =============================================================================
+
+export type TestWaveStatus = 'draft' | 'active' | 'completed' | 'cancelled';
+
+export interface CreateTestWaveDto {
+  name?: string;
+}
+
+export interface TestWaveDto {
+  id: number;
+  teamId: number;
+  name: string | null;
+  status: TestWaveStatus;
+  createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  participantsCount: number;
+  completedCount: number;
+  teamReportId: number | null;
+}
+
+export interface WaveParticipationDto {
+  playerId: number;
+  playerName: string | null;
+  notified: boolean;
+  notifiedAt: string | null;
+  completed: boolean;
+  completedAt: string | null;
+  sessionId: string | null;
+}
+
+export interface TestWaveDetailDto extends TestWaveDto {
+  participations: WaveParticipationDto[];
+}
+
+// =============================================================================
+// Dynamics DTOs
+// =============================================================================
+
+export interface ArchetypeChangeDto {
+  archetypeCode: ArchetypeCode;
+  archetypeName: string;
+  previousScore: number | null;
+  currentScore: number;
+  delta: number | null;
+  trend: 'up' | 'down' | 'stable' | 'new';
+}
+
+export interface PlayerDynamicsDto {
+  playerId: number;
+  playerName: string | null;
+  currentSession: {
+    id: string;
+    date: string;
+  };
+  previousSession: {
+    id: string;
+    date: string;
+  } | null;
+  changes: ArchetypeChangeDto[];
+}
+
+export interface TeamDynamicsDto {
+  teamId: number;
+  teamName: string;
+  currentWave: {
+    id: number;
+    date: string;
+  };
+  previousWave: {
+    id: number;
+    date: string;
+  } | null;
+  profileChanges: ArchetypeChangeDto[];
+  playerChanges: PlayerDynamicsDto[];
+}
+
+// =============================================================================
+// Push Notification DTOs (for Redis Pub/Sub)
+// =============================================================================
+
+export interface WaveNotificationPayload {
+  type: 'wave_start';
+  waveId: number;
+  teamId: number;
+  teamName: string;
+  participants: Array<{
+    playerId: number;
+    telegramId: string;
+    language: Language;
+  }>;
+}

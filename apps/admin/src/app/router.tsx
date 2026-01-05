@@ -11,6 +11,8 @@ import { ReportsListPage, ReportDetailPage } from '@/pages/reports';
 import { TeamsListPage } from '@/pages/teams/TeamsListPage';
 import { TeamDetailPage } from '@/pages/teams/TeamDetailPage';
 import { TeamReportPage } from '@/pages/teams/TeamReportPage';
+import { WaveDetailPage } from '@/pages/teams/WaveDetailPage';
+import { TeamDynamicsPage } from '@/pages/teams/TeamDynamicsPage';
 import { PinsPage } from '@/pages/pins/PinsPage';
 import { AuditPage } from '@/pages/audit/AuditPage';
 import { PromptsPage } from '@/pages/prompts/PromptsPage';
@@ -60,6 +62,14 @@ const routes: RouteObject[] = [
       {
         path: 'teams/:id/reports/:reportId',
         element: <TeamReportPage />,
+      },
+      {
+        path: 'teams/:id/waves/:waveId',
+        element: <WaveDetailPage />,
+      },
+      {
+        path: 'teams/:id/dynamics',
+        element: <TeamDynamicsPage />,
       },
       {
         path: 'pins',

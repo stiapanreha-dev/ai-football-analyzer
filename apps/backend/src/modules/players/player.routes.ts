@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 
-import type { ApiResponse, PaginatedResponse, PlayerDto, PlayerWithStatsDto, SessionDto } from '@archetypes/shared';
+import type { ApiResponse, PaginatedResponse, PlayerDto, PlayerWithStatsDto, SessionDto, PlayerDynamicsDto } from '@archetypes/shared';
 
 import {
   getPlayerParamsSchema,
@@ -9,9 +9,11 @@ import {
   updatePlayerSchema,
 } from './player.schemas.js';
 import { createPlayerService } from './player.service.js';
+import { createDynamicsService } from '../teams/dynamics.service.js';
 
 const playersRoutes: FastifyPluginAsync = async (fastify) => {
   const playerService = createPlayerService(fastify);
+  const dynamicsService = createDynamicsService(fastify);
 
   // GET /players - Список игроков (защищённый)
   fastify.get<{
@@ -204,6 +206,31 @@ const playersRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.send({
         success: true,
         data: { deleted: true },
+      });
+    }
+  );
+
+  // GET /players/:id/dynamics - Динамика изменений игрока (защищённый)
+  fastify.get<{
+    Params: { id: string };
+    Reply: ApiResponse<PlayerDynamicsDto>;
+  }>(
+    '/:id/dynamics',
+    {
+      schema: {
+        tags: ['dynamics'],
+        summary: 'Динамика изменений игрока',
+        security: [{ bearerAuth: [] }],
+      },
+      preHandler: [fastify.authenticate],
+    },
+    async (request, reply) => {
+      const { id } = getPlayerParamsSchema.parse(request.params);
+      const dynamics = await dynamicsService.getPlayerDynamics(id);
+
+      return reply.send({
+        success: true,
+        data: dynamics,
       });
     }
   );

@@ -81,4 +81,10 @@ export const el: Messages = {
     continue: '➡️ Συνέχεια',
     confirmDelete: '🗑️ Ναι, διαγραφή',
   },
+
+  wave: {
+    notification: (teamName: string) => `🏟️ Η ομάδα "${teamName}" ξεκίνησε νέο κύμα δοκιμών!\n\nΠατήστε το κουμπί παρακάτω για να κάνετε το τεστ.`,
+    startTestButton: '⚽ Κάνε το Τεστ',
+    alreadyStarted: '🔄 Έχετε ήδη ξεκινήσει τη δοκιμή. Συνεχίστε την τρέχουσα συνεδρία.',
+  },
 };
