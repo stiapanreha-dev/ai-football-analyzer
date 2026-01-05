@@ -454,6 +454,42 @@ function ExtendedAnalysisSection({ analysis, expandAll = false }: { analysis: Ex
   );
 }
 
+// CSS стили для корректной генерации PDF
+const pdfStyles = `
+  .pdf-mode .accordion-collapse {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    visibility: visible !important;
+  }
+  .pdf-mode .accordion-button::after {
+    display: none !important;
+  }
+  .pdf-mode .accordion-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 15px;
+  }
+  .pdf-mode .card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .pdf-mode .accordion-body {
+    padding: 1rem;
+  }
+  .pdf-mode h5, .pdf-mode h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  .pdf-mode table {
+    page-break-inside: auto;
+  }
+  .pdf-mode tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+`;
+
 export function TeamReportPage() {
   const { id, reportId } = useParams<{ id: string; reportId: string }>();
   const teamId = Number(id);
@@ -471,8 +507,14 @@ export function TeamReportPage() {
     // Раскрываем все accordion перед генерацией PDF
     setExpandAccordions(true);
 
+    // Добавляем стили для PDF
+    const styleEl = document.createElement('style');
+    styleEl.textContent = pdfStyles;
+    document.head.appendChild(styleEl);
+    reportRef.current.classList.add('pdf-mode');
+
     // Ждём перерисовку DOM
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     try {
       const teamName = report.teamName.replace(/\s+/g, '_');
@@ -482,12 +524,16 @@ export function TeamReportPage() {
         margin: 10,
         filename,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       };
 
       await html2pdf().set(opt).from(reportRef.current).save();
     } finally {
+      // Убираем стили PDF
+      reportRef.current?.classList.remove('pdf-mode');
+      document.head.querySelector('style:last-child')?.remove();
       setExpandAccordions(false);
       setIsGeneratingPdf(false);
     }
