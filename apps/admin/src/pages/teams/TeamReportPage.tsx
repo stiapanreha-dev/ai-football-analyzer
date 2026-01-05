@@ -44,11 +44,14 @@ const lineNames: Record<string, string> = {
   attack: 'Атака',
 };
 
-function ExtendedAnalysisSection({ analysis }: { analysis: ExtendedTeamAnalysis }) {
+function ExtendedAnalysisSection({ analysis, expandAll = false }: { analysis: ExtendedTeamAnalysis; expandAll?: boolean }) {
+  // Все ключи для раскрытия всех секций
+  const allKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8'];
+
   return (
     <div className="mt-5">
       <h5 className="mb-4">Расширенный анализ</h5>
-      <Accordion defaultActiveKey="0">
+      <Accordion defaultActiveKey="0" activeKey={expandAll ? allKeys : undefined} alwaysOpen={expandAll}>
         {/* 1. Дефициты архетипов */}
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -457,6 +460,7 @@ export function TeamReportPage() {
   const repId = Number(reportId);
   const reportRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [expandAccordions, setExpandAccordions] = useState(false);
 
   const { data: report, isLoading, error, refetch } = useTeamReport(teamId, repId);
 
@@ -464,6 +468,12 @@ export function TeamReportPage() {
     if (!reportRef.current || !report) return;
 
     setIsGeneratingPdf(true);
+    // Раскрываем все accordion перед генерацией PDF
+    setExpandAccordions(true);
+
+    // Ждём перерисовку DOM
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     try {
       const teamName = report.teamName.replace(/\s+/g, '_');
       const filename = `team_report_${teamName}_${report.id}.pdf`;
@@ -478,6 +488,7 @@ export function TeamReportPage() {
 
       await html2pdf().set(opt).from(reportRef.current).save();
     } finally {
+      setExpandAccordions(false);
       setIsGeneratingPdf(false);
     }
   };
@@ -654,7 +665,7 @@ export function TeamReportPage() {
 
       {/* Extended Analysis (9 sections from TZ) */}
       {report.extendedAnalysis && (
-        <ExtendedAnalysisSection analysis={report.extendedAnalysis} />
+        <ExtendedAnalysisSection analysis={report.extendedAnalysis} expandAll={expandAccordions} />
       )}
       </div>
     </div>
