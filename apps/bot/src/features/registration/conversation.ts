@@ -6,12 +6,17 @@ import { api } from '../../services/api.js';
 import { audit, AuditAction } from '../../services/audit.js';
 import { createPositionKeyboard, createContinueKeyboard } from '../start/keyboards.js';
 
+const MAX_NAME_LENGTH = 50;
+
 export async function registrationConversation(
   conversation: Conversation<MyContext>,
   ctx: MyContext
 ): Promise<void> {
   const messages = t(ctx);
   const telegramId = getTelegramId(ctx);
+
+  // Очищаем предыдущие данные регистрации для предотвращения race condition
+  conversation.session.registration = undefined;
 
   const playerId = conversation.session.playerId;
 
@@ -23,14 +28,25 @@ export async function registrationConversation(
     })
   );
 
-  // Запрашиваем имя
-  await ctx.reply(messages.registration.askName);
-  const nameResponse = await conversation.waitFor('message:text');
-  const name = nameResponse.message.text.trim();
+  // Запрашиваем имя с валидацией
+  let name = '';
+  while (!name) {
+    await ctx.reply(messages.registration.askName);
+    const nameResponse = await conversation.waitFor('message:text');
+    const rawName = nameResponse.message.text.trim();
 
-  // Проверяем на /start или /cancel - выходим из conversation
-  if (name === '/start' || name === '/cancel') {
-    return; // Выходим, /start handler покажет меню
+    // Проверяем на /start или /cancel - выходим из conversation
+    if (rawName === '/start' || rawName === '/cancel') {
+      return; // Выходим, /start handler покажет меню
+    }
+
+    // Валидация длины имени (защита от сохранения тестовых ответов как имён)
+    if (rawName.length > MAX_NAME_LENGTH) {
+      await ctx.reply(messages.registration.nameTooLong ?? `Имя слишком длинное. Максимум ${MAX_NAME_LENGTH} символов.`);
+      continue;
+    }
+
+    name = rawName;
   }
 
   await conversation.external(() =>
@@ -45,7 +61,7 @@ export async function registrationConversation(
   conversation.session.registration = { name };
 
   // Запрашиваем позицию
-  await nameResponse.reply(messages.registration.askPosition, {
+  await ctx.reply(messages.registration.askPosition, {
     reply_markup: createPositionKeyboard(messages),
   });
 

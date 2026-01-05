@@ -20,6 +20,7 @@ export const el: Messages = {
   registration: {
     askName: '👤 Ποιο είναι το όνομά σας; Εισάγετε το όνομά σας:',
     askPosition: '⚽ Επιλέξτε τη θέση σας:',
+    nameTooLong: '❌ Το όνομα είναι πολύ μεγάλο. Εισάγετε ένα όνομα με λιγότερους από 50 χαρακτήρες.',
     positions: {
       goalkeeper: '🧤 Τερματοφύλακας',
       defender: '🛡️ Αμυντικός',

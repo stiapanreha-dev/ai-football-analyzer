@@ -20,6 +20,7 @@ export const no: Messages = {
   registration: {
     askName: '👤 Hva heter du? Skriv inn navnet ditt:',
     askPosition: '⚽ Velg din posisjon:',
+    nameTooLong: '❌ Navnet er for langt. Vennligst skriv inn et navn med mindre enn 50 tegn.',
     positions: {
       goalkeeper: '🧤 Keeper',
       defender: '🛡️ Forsvar',

@@ -20,6 +20,7 @@ export const sr: Messages = {
   registration: {
     askName: '👤 Kako se zovete? Unesite vaše ime:',
     askPosition: '⚽ Izaberite vašu poziciju:',
+    nameTooLong: '❌ Ime je predugačko. Unesite ime kraće od 50 karaktera.',
     positions: {
       goalkeeper: '🧤 Golman',
       defender: '🛡️ Odbrana',

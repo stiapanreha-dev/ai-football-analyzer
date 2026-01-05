@@ -20,6 +20,7 @@ export const fr: Messages = {
   registration: {
     askName: '👤 Quel est votre nom? Entrez votre nom:',
     askPosition: '⚽ Sélectionnez votre position:',
+    nameTooLong: '❌ Le nom est trop long. Veuillez entrer un nom de moins de 50 caractères.',
     positions: {
       goalkeeper: '🧤 Gardien',
       defender: '🛡️ Défenseur',

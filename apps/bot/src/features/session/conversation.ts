@@ -25,6 +25,9 @@ export async function sessionConversation(
   const playerId = conversation.session.playerId;
   const language = conversation.session.language;
 
+  // Очищаем данные регистрации для предотвращения race condition
+  conversation.session.registration = undefined;
+
   await conversation.external(() =>
     audit.log({
       action: AuditAction.SESSION_STARTED,
