@@ -6,6 +6,7 @@ import type {
   WaveParticipationDto,
   CreateTestWaveDto,
   WaveNotificationPayload,
+  Language,
 } from '@archetypes/shared';
 
 import { NotFoundError, ValidationError } from '../../utils/errors.js';
@@ -171,7 +172,15 @@ export function createWaveService(fastify: FastifyInstance) {
         team: true,
         participations: {
           include: {
-            player: true,
+            player: {
+              include: {
+                sessions: {
+                  orderBy: { createdAt: 'desc' },
+                  take: 1,
+                  select: { language: true },
+                },
+              },
+            },
           },
         },
       },
@@ -194,7 +203,7 @@ export function createWaveService(fastify: FastifyInstance) {
       participants: wave.participations.map((p) => ({
         playerId: p.playerId,
         telegramId: p.player.telegramId.toString(),
-        language: 'ru',
+        language: (p.player.sessions[0]?.language ?? 'ru') as Language,
       })),
     };
 
