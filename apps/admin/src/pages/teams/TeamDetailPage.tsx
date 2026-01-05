@@ -110,6 +110,10 @@ export function TeamDetailPage() {
           setShowSimulationResult(true);
           setSimulationMode(false);
         },
+        onError: (error) => {
+          console.error('Simulation error:', error);
+          alert(`Ошибка моделирования: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+        },
       }
     );
   };
