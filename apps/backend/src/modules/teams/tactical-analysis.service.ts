@@ -168,7 +168,7 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
       .replace('{{ARCHETYPE_DETAILS}}', buildArchetypeDetailsText());
 
     // Call LLM with higher token limit for large JSON response (9 sections)
-    const response = await complete(prompt, { maxTokens: 8192, temperature: 0.5 });
+    const response = await complete(prompt, { maxTokens: 16384, temperature: 0.5 });
 
     // Parse response
     const jsonMatch = response.match(/\{[\s\S]*\}/);
