@@ -191,6 +191,7 @@ export class PlayerService {
         name: data.name,
         position: data.position,
         jerseyNumber: data.jerseyNumber,
+        language: data.language,
       },
     });
 
