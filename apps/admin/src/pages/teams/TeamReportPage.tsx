@@ -1,6 +1,8 @@
 import { useParams, Link } from 'react-router-dom';
-import { Card, Row, Col, Badge, ProgressBar, ListGroup, Button } from 'react-bootstrap';
+import { useRef, useState } from 'react';
+import { Card, Row, Col, Badge, ProgressBar, ListGroup, Button, Spinner } from 'react-bootstrap';
 import { FaCrown, FaFistRaised, FaBrain, FaHandshake, FaCog, FaStar, FaDoorOpen, FaCheck, FaTimes } from 'react-icons/fa';
+import html2pdf from 'html2pdf.js';
 
 import { useTeamReport } from '@/features/teams/hooks';
 import { LoadingSpinner } from '@/shared/ui/LoadingSpinner';
@@ -29,8 +31,32 @@ export function TeamReportPage() {
   const { id, reportId } = useParams<{ id: string; reportId: string }>();
   const teamId = Number(id);
   const repId = Number(reportId);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const { data: report, isLoading, error, refetch } = useTeamReport(teamId, repId);
+
+  const handleDownloadPdf = async () => {
+    if (!reportRef.current || !report) return;
+
+    setIsGeneratingPdf(true);
+    try {
+      const teamName = report.teamName.replace(/\s+/g, '_');
+      const filename = `team_report_${teamName}_${report.id}.pdf`;
+
+      const opt = {
+        margin: 10,
+        filename,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+      };
+
+      await html2pdf().set(opt).from(reportRef.current).save();
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -48,11 +74,28 @@ export function TeamReportPage() {
         <h4 className="mb-0">
           Тактический отчёт: {report.teamName}
         </h4>
-        <Link to={`/teams/${teamId}`}>
-          <Button variant="outline-secondary">Назад к команде</Button>
-        </Link>
+        <div className="d-flex gap-2">
+          <Button
+            variant="success"
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf}
+          >
+            {isGeneratingPdf ? (
+              <>
+                <Spinner size="sm" className="me-2" />
+                Генерация...
+              </>
+            ) : (
+              'Скачать PDF'
+            )}
+          </Button>
+          <Link to={`/teams/${teamId}`}>
+            <Button variant="outline-secondary">Назад к команде</Button>
+          </Link>
+        </div>
       </div>
 
+      <div ref={reportRef}>
       <p className="text-muted mb-4">
         Проанализировано игроков: {report.analyzedPlayersCount} |
         Создан: {formatDateTime(report.createdAt)}
@@ -184,6 +227,7 @@ export function TeamReportPage() {
           })}
         </Col>
       </Row>
+      </div>
     </div>
   );
 }
