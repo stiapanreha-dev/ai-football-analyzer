@@ -287,6 +287,157 @@ export interface TeamArchetypeProfile {
   playerCount: number;            // Кол-во игроков с этим архетипом как доминирующим
 }
 
+// =============================================================================
+// Extended Team Analysis Sections (from TZ)
+// =============================================================================
+
+/** 1. Дефициты архетипов */
+export interface ArchetypeDeficit {
+  archetypeCode: ArchetypeCode;
+  archetypeName: string;
+  averageScore: number;
+  gameRisks: string[];           // Игровые риски
+  psychologicalRisks: string[];  // Психологические риски
+  tacticalRisks: string[];       // Тактические риски
+  criticalPhases: string[];      // Фазы игры, где дефицит критичен
+  isCritical: boolean;           // Критичный дефицит или допустимый
+}
+
+export interface ArchetypeDeficitsSection {
+  deficits: ArchetypeDeficit[];
+  missingPlayerTypes: string[];  // Каких типов игроков не хватает
+  transferHypotheses: string[];  // Трансферные гипотезы
+}
+
+/** 2. Потенциал развития архетипов */
+export interface ArchetypeDevelopmentPotential {
+  archetypeCode: ArchetypeCode;
+  archetypeName: string;
+  isDevelopable: boolean;        // Развиваемый или врождённый
+  developmentMethods: string[];  // Как развивать
+  limitations: string[];         // Ограничения и риски
+}
+
+export interface DevelopmentPotentialSection {
+  archetypes: ArchetypeDevelopmentPotential[];
+  developRecommendations: string[];   // Какие развивать
+  compensateRecommendations: string[]; // Какие компенсировать трансферами
+}
+
+/** 3. Тактические уязвимости */
+export interface TacticalVulnerability {
+  imbalance: string;              // Описание перекоса
+  dangerousOpponents: string[];   // Против каких соперников опасно
+  riskScenarios: string[];        // Игровые сценарии риска
+  compensation: string[];         // Как компенсировать тактически
+}
+
+export interface TacticalVulnerabilitiesSection {
+  vulnerabilities: TacticalVulnerability[];
+  dangerousMatchups: string[];    // Опасные матч-апы
+}
+
+/** 4. Распределение по ролям и линиям */
+export interface LineArchetypeDistribution {
+  line: 'defense' | 'midfield' | 'attack';
+  lineName: string;
+  dominantArchetypes: string[];   // Доминирующие архетипы в линии
+  gaps: string[];                 // Архетипические вакуумы
+  overloads: string[];            // Перегрузки
+}
+
+export interface ArchetypeCombination {
+  archetypes: string[];
+  effect: 'synergy' | 'conflict';
+  description: string;
+}
+
+export interface RoleDistributionSection {
+  lineDistribution: LineArchetypeDistribution[];
+  combinations: ArchetypeCombination[];
+  roleRecommendations: string[];  // Рекомендации по перераспределению ролей
+}
+
+/** 5. Стратегия замен */
+export interface SubstitutionScenario {
+  scenario: 'hold_lead' | 'increase_pressure' | 'break_low_block' | 'stabilize_after_goal';
+  scenarioName: string;
+  neededArchetypes: string[];     // Какие архетипы нужны
+  optimalTiming: string;          // Оптимальное время для замены
+  playerRecommendations: string[]; // Какие игроки подходят
+}
+
+export interface SubstitutionStrategySection {
+  scenarios: SubstitutionScenario[];
+  generalRecommendations: string[];
+}
+
+/** 6. Тренировочный процесс */
+export interface ArchetypeTrainingProfile {
+  archetypeCode: ArchetypeCode;
+  archetypeName: string;
+  effectiveExercises: string[];   // Какие упражнения усиливают
+  frustratingFormats: string[];   // Какие форматы фрустрируют
+}
+
+export interface TrainingProcessSection {
+  archetypeProfiles: ArchetypeTrainingProfile[];
+  balanceRecommendations: string[]; // Баланс структуры и свободы
+  underdevelopedArchetypeExercises: string[]; // Упражнения для недопредставленных
+}
+
+/** 7. Дополнительные данные */
+export interface AdditionalDataSection {
+  behavioralMetrics: string[];    // Поведенческие параметры
+  contextualMetrics: string[];    // Контекстуальные параметры
+  psychologicalMetrics: string[]; // Психологические параметры
+  dynamicTrackingMetrics: string[]; // Для отслеживания динамики
+  keyGameEvents: string[];        // Показательные игровые события
+  minimalMetricsSet: string[];    // Минимальный набор
+  extendedMetricsSet: string[];   // Расширенный набор
+}
+
+/** 8. Трансферная стратегия */
+export interface TransferTarget {
+  position: string;
+  neededArchetypes: string[];
+  idealCombination: string;
+  risks: string[];                // Риски конфликтующих профилей
+}
+
+export interface TransferStrategySection {
+  priorityArchetypes: string[];   // Какие архетипы усилить
+  transferTargets: TransferTarget[];
+  foreignPlayerRequirements: string[]; // Требования к легионерам
+}
+
+/** 9. Совместимость с тренером */
+export interface CoachTypeCompatibility {
+  coachType: string;
+  compatibility: 'high' | 'medium' | 'low';
+  reasoning: string;
+}
+
+export interface CoachCompatibilitySection {
+  idealCoachType: string;
+  conflictingCoachTypes: string[];
+  coachChangeRisks: string[];
+  coachTypes: CoachTypeCompatibility[];
+}
+
+/** Extended Team Analysis - all 9 sections combined */
+export interface ExtendedTeamAnalysis {
+  deficits: ArchetypeDeficitsSection;
+  developmentPotential: DevelopmentPotentialSection;
+  tacticalVulnerabilities: TacticalVulnerabilitiesSection;
+  roleDistribution: RoleDistributionSection;
+  substitutionStrategy: SubstitutionStrategySection;
+  trainingProcess: TrainingProcessSection;
+  additionalData: AdditionalDataSection;
+  transferStrategy: TransferStrategySection;
+  coachCompatibility: CoachCompatibilitySection;
+}
+
 export interface TeamReportDto {
   id: number;
   teamId: number;
@@ -298,6 +449,8 @@ export interface TeamReportDto {
   overallAssessment: string;
   analyzedPlayersCount: number;
   createdAt: string;
+  // Extended analysis sections (from TZ)
+  extendedAnalysis?: ExtendedTeamAnalysis;
 }
 
 // =============================================================================

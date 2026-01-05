@@ -137,6 +137,7 @@ model TeamReport {
   recommendations Json    @map("recommendations")   // Рекомендации по тактике
   overallAssessment String @map("overall_assessment")
   analyzedPlayersCount Int @map("analyzed_players_count")
+  extendedAnalysis Json?  @map("extended_analysis") // Расширенный анализ (9 разделов)
   createdAt      DateTime @default(now()) @map("created_at")
 
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)

@@ -4,6 +4,7 @@ import type {
   TeamReportDto,
   TeamArchetypeProfile,
   TacticalStyleRecommendation,
+  ExtendedTeamAnalysis,
   ArchetypeCode,
 } from '@archetypes/shared';
 import { ARCHETYPES } from '@archetypes/shared';
@@ -16,6 +17,7 @@ interface LLMTacticalResponse {
   dominantArchetypes: ArchetypeCode[];
   weakArchetypes: ArchetypeCode[];
   recommendations: TacticalStyleRecommendation[];
+  extendedAnalysis?: ExtendedTeamAnalysis;
 }
 
 export function createTacticalAnalysisService(fastify: FastifyInstance) {
@@ -165,8 +167,8 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
       .replace('{{TEAM_AVERAGE_SCORES}}', buildTeamAverageScoresText(teamProfile))
       .replace('{{ARCHETYPE_DETAILS}}', buildArchetypeDetailsText());
 
-    // Call LLM with higher token limit for large JSON response
-    const response = await complete(prompt, { maxTokens: 4096, temperature: 0.5 });
+    // Call LLM with higher token limit for large JSON response (9 sections)
+    const response = await complete(prompt, { maxTokens: 8192, temperature: 0.5 });
 
     // Parse response
     const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -184,6 +186,7 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
         recommendations: parsed.recommendations as unknown as object,
         overallAssessment: parsed.overallAssessment,
         analyzedPlayersCount: playersWithProfiles.length,
+        extendedAnalysis: parsed.extendedAnalysis as unknown as object ?? null,
       },
       include: { team: true },
     });
@@ -199,6 +202,7 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
       overallAssessment: parsed.overallAssessment,
       analyzedPlayersCount: report.analyzedPlayersCount,
       createdAt: report.createdAt.toISOString(),
+      extendedAnalysis: parsed.extendedAnalysis,
     };
   }
 
@@ -217,6 +221,7 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
     return reports.map((report) => {
       const recommendations = report.recommendations as unknown as TacticalStyleRecommendation[];
       const teamProfile = report.teamProfile as unknown as TeamArchetypeProfile[];
+      const extendedAnalysis = report.extendedAnalysis as unknown as ExtendedTeamAnalysis | null;
 
       // Extract dominant/weak from recommendations or calculate
       const sortedProfile = [...teamProfile].sort((a, b) => b.averageScore - a.averageScore);
@@ -234,6 +239,7 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
         overallAssessment: report.overallAssessment,
         analyzedPlayersCount: report.analyzedPlayersCount,
         createdAt: report.createdAt.toISOString(),
+        extendedAnalysis: extendedAnalysis ?? undefined,
       };
     });
   }
@@ -250,6 +256,7 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
 
     const recommendations = report.recommendations as unknown as TacticalStyleRecommendation[];
     const teamProfile = report.teamProfile as unknown as TeamArchetypeProfile[];
+    const extendedAnalysis = report.extendedAnalysis as unknown as ExtendedTeamAnalysis | null;
 
     const sortedProfile = [...teamProfile].sort((a, b) => b.averageScore - a.averageScore);
     const dominantArchetypes = sortedProfile.slice(0, 2).map((p) => p.archetypeCode);
@@ -266,6 +273,7 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
       overallAssessment: report.overallAssessment,
       analyzedPlayersCount: report.analyzedPlayersCount,
       createdAt: report.createdAt.toISOString(),
+      extendedAnalysis: extendedAnalysis ?? undefined,
     };
   }
 

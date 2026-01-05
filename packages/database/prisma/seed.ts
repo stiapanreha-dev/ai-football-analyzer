@@ -313,7 +313,13 @@ const promptTemplates = [
   },
   {
     key: 'prompt_tactical_analysis',
-    value: `Ты - тактический аналитик футбола и спортивный психолог. Проанализируй психологический профиль команды и дай рекомендации по тактическим моделям игры.
+    value: `Ты - тактический аналитик футбола и спортивный психолог. Проанализируй психологический профиль команды.
+
+СТИЛЬ ОТВЕТА:
+- Пиши ТЕЗИСНО. Короткие утверждения без воды.
+- Формулировки РЕЗКИЕ и КАТЕГОРИЧНЫЕ.
+- Никаких "возможно", "скорее всего", "может быть".
+- Каждый тезис — конкретный факт или рекомендация.
 
 КОМАНДА: {{TEAM_NAME}}
 
@@ -326,26 +332,25 @@ const promptTemplates = [
 АРХЕТИПЫ:
 {{ARCHETYPE_DETAILS}}
 
-ТАКТИЧЕСКИЕ МОДЕЛИ ДЛЯ АНАЛИЗА:
-1. high_press (Агрессивно-прессинговый) — высокий прессинг, gegenpressing, давление сразу после потери
-2. reactive (Агрессивно-оборонительный) — низкий/средний блок, контратаки, разрушение игры соперника
-3. positional (Позиционный) — контроль мяча, треугольники, позиционная дисциплина
-4. direct (Вертикальный) — минимум пасов, быстрый переход в атаку, прямолинейность
-5. adaptive (Гибридный) — смена стиля по ходу матча, прагматизм
+ТАКТИЧЕСКИЕ МОДЕЛИ:
+1. high_press — высокий прессинг, gegenpressing
+2. reactive — низкий блок, контратаки
+3. positional — контроль мяча, позиционная дисциплина
+4. direct — вертикальный футбол, минимум пасов
+5. adaptive — гибридный, смена стиля по ходу матча
 
 СОВМЕСТИМОСТЬ АРХЕТИПОВ С ТАКТИКАМИ:
 - high_press: идеально Воин, Лидер, Исполнитель; плохо Избегающий, Индивидуалист
 - reactive: идеально Исполнитель, Стратег, Дипломат; плохо Индивидуалист
-- positional: идеально Стратег, Дипломат, Исполнитель; плохо Воин (импульсивность)
-- direct: идеально Воин, Индивидуалист, Лидер; плохо Стратег (требует анализа)
+- positional: идеально Стратег, Дипломат, Исполнитель; плохо Воин
+- direct: идеально Воин, Индивидуалист, Лидер; плохо Стратег
 - adaptive: требует баланс всех, особенно Стратег + Лидер + Дипломат
 
-ЗАДАЧА:
-Проанализируй команду и дай рекомендации по всем 5 тактическим моделям.
+ЗАДАЧА: Выдай ПОЛНЫЙ анализ команды по всем 9 разделам.
 
 ФОРМАТ ОТВЕТА (строго JSON):
 {
-  "overallAssessment": "общая оценка психологического профиля команды (2-3 предложения)",
+  "overallAssessment": "2-3 тезиса об общем профиле команды",
   "dominantArchetypes": ["код1", "код2"],
   "weakArchetypes": ["код1", "код2"],
   "recommendations": [
@@ -353,22 +358,186 @@ const promptTemplates = [
       "style": "high_press",
       "styleName": "Агрессивно-прессинговый",
       "suitability": 85,
-      "reasoning": "почему эта модель подходит/не подходит команде",
-      "pros": ["плюс 1", "плюс 2", "плюс 3"],
+      "reasoning": "почему подходит/не подходит",
+      "pros": ["плюс 1", "плюс 2"],
       "cons": ["минус 1", "минус 2"],
-      "keyPlayers": ["Имя игрока 1 - роль в этой системе", "Имя игрока 2 - роль"]
+      "keyPlayers": ["Имя - роль"]
     }
-  ]
+  ],
+  "extendedAnalysis": {
+    "deficits": {
+      "deficits": [
+        {
+          "archetypeCode": "код",
+          "archetypeName": "название",
+          "averageScore": 3.5,
+          "gameRisks": ["риск 1", "риск 2"],
+          "psychologicalRisks": ["риск 1"],
+          "tacticalRisks": ["риск 1"],
+          "criticalPhases": ["фаза 1"],
+          "isCritical": true
+        }
+      ],
+      "missingPlayerTypes": ["тип игрока 1", "тип 2"],
+      "transferHypotheses": ["гипотеза 1", "гипотеза 2"]
+    },
+    "developmentPotential": {
+      "archetypes": [
+        {
+          "archetypeCode": "код",
+          "archetypeName": "название",
+          "isDevelopable": true,
+          "developmentMethods": ["метод 1", "метод 2"],
+          "limitations": ["ограничение 1"]
+        }
+      ],
+      "developRecommendations": ["что развивать 1", "что 2"],
+      "compensateRecommendations": ["что компенсировать трансферами"]
+    },
+    "tacticalVulnerabilities": {
+      "vulnerabilities": [
+        {
+          "imbalance": "описание перекоса",
+          "dangerousOpponents": ["тип соперника 1"],
+          "riskScenarios": ["сценарий 1"],
+          "compensation": ["как компенсировать"]
+        }
+      ],
+      "dangerousMatchups": ["против кого опасно играть"]
+    },
+    "roleDistribution": {
+      "lineDistribution": [
+        {
+          "line": "defense",
+          "lineName": "Оборона",
+          "dominantArchetypes": ["архетип 1"],
+          "gaps": ["вакуум 1"],
+          "overloads": ["перегрузка 1"]
+        },
+        {
+          "line": "midfield",
+          "lineName": "Полузащита",
+          "dominantArchetypes": ["архетип 1"],
+          "gaps": [],
+          "overloads": []
+        },
+        {
+          "line": "attack",
+          "lineName": "Атака",
+          "dominantArchetypes": ["архетип 1"],
+          "gaps": [],
+          "overloads": []
+        }
+      ],
+      "combinations": [
+        {
+          "archetypes": ["архетип 1", "архетип 2"],
+          "effect": "synergy",
+          "description": "почему работает/конфликтует"
+        }
+      ],
+      "roleRecommendations": ["рекомендация 1"]
+    },
+    "substitutionStrategy": {
+      "scenarios": [
+        {
+          "scenario": "hold_lead",
+          "scenarioName": "Удержание счёта",
+          "neededArchetypes": ["архетип 1"],
+          "optimalTiming": "60-70 минута",
+          "playerRecommendations": ["игрок 1"]
+        },
+        {
+          "scenario": "increase_pressure",
+          "scenarioName": "Усиление давления",
+          "neededArchetypes": ["архетип 1"],
+          "optimalTiming": "55-65 минута",
+          "playerRecommendations": ["игрок 1"]
+        },
+        {
+          "scenario": "break_low_block",
+          "scenarioName": "Взлом низкого блока",
+          "neededArchetypes": ["архетип 1"],
+          "optimalTiming": "60-75 минута",
+          "playerRecommendations": ["игрок 1"]
+        },
+        {
+          "scenario": "stabilize_after_goal",
+          "scenarioName": "Стабилизация после гола",
+          "neededArchetypes": ["архетип 1"],
+          "optimalTiming": "сразу после пропущенного",
+          "playerRecommendations": ["игрок 1"]
+        }
+      ],
+      "generalRecommendations": ["общая рекомендация 1"]
+    },
+    "trainingProcess": {
+      "archetypeProfiles": [
+        {
+          "archetypeCode": "код",
+          "archetypeName": "название",
+          "effectiveExercises": ["упражнение 1"],
+          "frustratingFormats": ["формат 1"]
+        }
+      ],
+      "balanceRecommendations": ["баланс структуры и свободы"],
+      "underdevelopedArchetypeExercises": ["упражнение для недопредставленных"]
+    },
+    "additionalData": {
+      "behavioralMetrics": ["метрика 1"],
+      "contextualMetrics": ["метрика 1"],
+      "psychologicalMetrics": ["метрика 1"],
+      "dynamicTrackingMetrics": ["метрика 1"],
+      "keyGameEvents": ["событие 1"],
+      "minimalMetricsSet": ["минимум 1"],
+      "extendedMetricsSet": ["расширенная 1"]
+    },
+    "transferStrategy": {
+      "priorityArchetypes": ["архетип для усиления"],
+      "transferTargets": [
+        {
+          "position": "позиция",
+          "neededArchetypes": ["архетип 1"],
+          "idealCombination": "идеальная комбинация",
+          "risks": ["риск 1"]
+        }
+      ],
+      "foreignPlayerRequirements": ["требование к легионерам"]
+    },
+    "coachCompatibility": {
+      "idealCoachType": "тип тренера",
+      "conflictingCoachTypes": ["конфликтующий тип"],
+      "coachChangeRisks": ["риск смены тренера"],
+      "coachTypes": [
+        {
+          "coachType": "Авторитарный",
+          "compatibility": "high",
+          "reasoning": "почему"
+        },
+        {
+          "coachType": "Демократичный",
+          "compatibility": "medium",
+          "reasoning": "почему"
+        },
+        {
+          "coachType": "Либеральный",
+          "compatibility": "low",
+          "reasoning": "почему"
+        }
+      ]
+    }
+  }
 }
 
 ВАЖНО:
-- Оцени ВСЕ 5 тактических моделей
-- suitability: 0-100 (процент совместимости с профилем команды)
+- Оцени ВСЕ 5 тактических моделей в recommendations
+- suitability: 0-100 процентов
 - Сортируй recommendations по убыванию suitability
-- keyPlayers: укажи 2-4 ключевых игрока для каждой модели с их ролью
-- pros/cons: 2-4 пункта каждый, конкретно для ЭТОЙ команды
-- dominantArchetypes: топ-2 архетипа команды по среднему баллу
-- weakArchetypes: 2 самых слабых архетипа команды
+- В deficits: только архетипы с averageScore < 5.0
+- В developmentPotential: ВСЕ 7 архетипов
+- В roleDistribution: ВСЕ 3 линии (defense, midfield, attack)
+- В substitutionStrategy: ВСЕ 4 сценария
+- Формулировки РЕЗКИЕ, без воды
 
 ВСЕ ТЕКСТЫ НА РУССКОМ ЯЗЫКЕ!`,
   },
