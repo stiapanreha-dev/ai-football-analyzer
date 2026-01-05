@@ -172,15 +172,7 @@ export function createWaveService(fastify: FastifyInstance) {
         team: true,
         participations: {
           include: {
-            player: {
-              include: {
-                sessions: {
-                  orderBy: { createdAt: 'desc' },
-                  take: 1,
-                  select: { language: true },
-                },
-              },
-            },
+            player: true,
           },
         },
       },
@@ -203,7 +195,7 @@ export function createWaveService(fastify: FastifyInstance) {
       participants: wave.participations.map((p) => ({
         playerId: p.playerId,
         telegramId: p.player.telegramId.toString(),
-        language: (p.player.sessions[0]?.language ?? 'ru') as Language,
+        language: (p.player.language ?? 'ru') as Language,
       })),
     };
 

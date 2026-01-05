@@ -153,13 +153,24 @@ export function setupStartHandlers(bot: Bot<MyContext>): void {
   bot.callbackQuery(/^lang_(.+)$/, async (ctx) => {
     const lang = ctx.match[1] as Language;
     const isFirstSelection = !ctx.session.languageSelected;
+    const telegramId = getTelegramId(ctx);
 
     ctx.session.language = lang;
     ctx.session.languageSelected = true;
 
+    // Сохраняем язык в БД если игрок существует
+    try {
+      const player = await api.getPlayerByTelegramId(telegramId);
+      if (player) {
+        await api.updatePlayer(telegramId, { language: lang });
+      }
+    } catch {
+      // Игнорируем ошибки - игрок может ещё не существовать
+    }
+
     await audit.log({
       action: AuditAction.LANGUAGE_CHANGED,
-      telegramId: getTelegramId(ctx),
+      telegramId,
       playerId: ctx.session.playerId,
       data: { language: lang, isFirstSelection },
     });

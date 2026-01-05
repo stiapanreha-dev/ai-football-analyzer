@@ -81,9 +81,10 @@ export async function registrationConversation(
     })
   );
 
-  // Сохраняем данные через API
+  // Сохраняем данные через API (включая язык из сессии)
+  const language = conversation.session.language;
   await conversation.external(() =>
-    api.updatePlayer(telegramId, { name, position })
+    api.updatePlayer(telegramId, { name, position, language })
   );
 
   // Очищаем временные данные регистрации

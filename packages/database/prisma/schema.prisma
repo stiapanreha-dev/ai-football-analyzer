@@ -98,6 +98,7 @@ model Player {
   name         String?
   position     PlayerPosition?
   jerseyNumber Int?            @map("jersey_number")
+  language     String          @default("ru")
   createdAt    DateTime        @default(now()) @map("created_at")
 
   sessions           Session[]

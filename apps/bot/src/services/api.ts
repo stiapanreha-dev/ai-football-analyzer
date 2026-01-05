@@ -110,7 +110,7 @@ export const api = {
 
   async updatePlayer(
     telegramId: bigint,
-    data: { name?: string; position?: string; jerseyNumber?: number }
+    data: { name?: string; position?: string; jerseyNumber?: number; language?: string }
   ): Promise<PlayerDto> {
     return request('PATCH', `/players/telegram/${telegramId}`, data);
   },

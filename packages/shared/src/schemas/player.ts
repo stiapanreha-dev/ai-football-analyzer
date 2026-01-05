@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
+import { SUPPORTED_LANGUAGES } from '../constants/languages.js';
+
 export const playerPositionSchema = z.enum(['goalkeeper', 'defender', 'midfielder', 'forward', 'staff']);
+const playerLanguageSchema = z.enum(SUPPORTED_LANGUAGES);
 
 export const createPlayerSchema = z.object({
   telegramId: z.union([z.bigint(), z.number().int().positive()]),
@@ -13,6 +16,7 @@ export const updatePlayerSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   position: playerPositionSchema.optional(),
   jerseyNumber: z.number().int().min(1).max(99).optional(),
+  language: playerLanguageSchema.optional(),
 });
 
 export const getPlayerParamsSchema = z.object({
