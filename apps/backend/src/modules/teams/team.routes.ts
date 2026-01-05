@@ -226,6 +226,33 @@ const teamsRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
+  // POST /teams/:id/report/simulate - Моделирование отчёта с выбранными игроками
+  fastify.post<{
+    Params: { id: string };
+    Body: { playerIds: number[] };
+    Reply: ApiResponse<TeamReportDto>;
+  }>(
+    '/:id/report/simulate',
+    {
+      schema: {
+        tags: ['teams'],
+        summary: 'Моделирование отчёта с выбранными игроками (без сохранения)',
+        security: [{ bearerAuth: [] }],
+      },
+      preHandler: [fastify.authenticate],
+    },
+    async (request, reply) => {
+      const { id } = teamIdParamsSchema.parse(request.params);
+      const { playerIds } = request.body as { playerIds: number[] };
+      const report = await tacticalService.simulateReport(id, playerIds);
+
+      return reply.send({
+        success: true,
+        data: report,
+      });
+    }
+  );
+
   // GET /teams/:id/reports - Список отчётов команды
   fastify.get<{
     Params: { id: string };

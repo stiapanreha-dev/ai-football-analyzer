@@ -206,6 +206,65 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
     };
   }
 
+  /**
+   * Моделирование отчёта для выбранных игроков (без сохранения в БД)
+   */
+  async function simulateReport(teamId: number, playerIds: number[]): Promise<TeamReportDto> {
+    const { team, playersWithProfiles } = await getPlayersWithProfiles(teamId);
+
+    // Filter by selected player IDs
+    const selectedPlayers = playersWithProfiles.filter((p) => playerIds.includes(p.id));
+
+    if (selectedPlayers.length < 2) {
+      throw new ValidationError('Для моделирования нужно выбрать минимум 2 игрока с пройденным тестированием');
+    }
+
+    const teamProfile = calculateTeamProfile(selectedPlayers);
+
+    // Get prompt template
+    const promptSetting = await prisma.settings.findUnique({
+      where: { key: 'prompt_tactical_analysis' },
+    });
+
+    if (!promptSetting) {
+      throw new Error('Prompt template for tactical analysis not found');
+    }
+
+    // Build prompt with simulation context
+    const simulationNote = `\n\nВНИМАНИЕ: Это моделирование с выбранным составом из ${selectedPlayers.length} игроков (не вся команда).`;
+    const prompt = promptSetting.value
+      .replace('{{TEAM_NAME}}', team.name + ' (моделирование)')
+      .replace('{{PLAYERS_PROFILES}}', buildPlayersProfilesText(selectedPlayers))
+      .replace('{{TEAM_AVERAGE_SCORES}}', buildTeamAverageScoresText(teamProfile))
+      .replace('{{ARCHETYPE_DETAILS}}', buildArchetypeDetailsText()) + simulationNote;
+
+    // Call LLM
+    const response = await complete(prompt, { maxTokens: 16384, temperature: 0.5 });
+
+    // Parse response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Failed to parse tactical analysis response: no JSON found');
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]) as LLMTacticalResponse;
+
+    // Return without saving to database
+    return {
+      id: 0, // No ID since not saved
+      teamId,
+      teamName: team.name + ' (моделирование)',
+      teamProfile,
+      recommendations: parsed.recommendations,
+      dominantArchetypes: parsed.dominantArchetypes,
+      weakArchetypes: parsed.weakArchetypes,
+      overallAssessment: parsed.overallAssessment,
+      analyzedPlayersCount: selectedPlayers.length,
+      createdAt: new Date().toISOString(),
+      extendedAnalysis: parsed.extendedAnalysis,
+    };
+  }
+
   async function getReports(teamId: number): Promise<TeamReportDto[]> {
     const team = await prisma.team.findUnique({ where: { id: teamId } });
     if (!team) {
@@ -279,6 +338,7 @@ export function createTacticalAnalysisService(fastify: FastifyInstance) {
 
   return {
     generateReport,
+    simulateReport,
     getReports,
     getReport,
   };

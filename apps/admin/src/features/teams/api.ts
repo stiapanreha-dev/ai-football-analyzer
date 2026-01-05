@@ -54,6 +54,10 @@ export async function generateTeamReport(teamId: number): Promise<TeamReportDto>
   return apiRequest('POST', `/teams/${teamId}/report`);
 }
 
+export async function simulateTeamReport(teamId: number, playerIds: number[]): Promise<TeamReportDto> {
+  return apiRequest('POST', `/teams/${teamId}/report/simulate`, { playerIds });
+}
+
 export async function getTeamReports(teamId: number): Promise<TeamReportDto[]> {
   return apiRequest('GET', `/teams/${teamId}/reports`);
 }

@@ -10,6 +10,7 @@ import {
   addPlayersToTeam,
   removePlayersFromTeam,
   generateTeamReport,
+  simulateTeamReport,
   getTeamReports,
   getTeamReport,
   getTeamWaves,
@@ -103,6 +104,13 @@ export function useGenerateTeamReport() {
     onSuccess: (_, teamId) => {
       queryClient.invalidateQueries({ queryKey: ['teams', teamId, 'reports'] });
     },
+  });
+}
+
+export function useSimulateTeamReport() {
+  return useMutation({
+    mutationFn: ({ teamId, playerIds }: { teamId: number; playerIds: number[] }) =>
+      simulateTeamReport(teamId, playerIds),
   });
 }
 
