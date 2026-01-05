@@ -1,5 +1,13 @@
 import { apiRequest } from '@/shared/api/client';
-import type { PaginatedResponse, PlayerWithStatsDto } from '@archetypes/shared';
+import type { PaginatedResponse, PlayerWithStatsDto, PlayerDto } from '@archetypes/shared';
+
+type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | 'staff';
+
+export interface UpdatePlayerParams {
+  name?: string;
+  position?: PlayerPosition;
+  jerseyNumber?: number | null;
+}
 
 export interface GetPlayersParams {
   page?: number;
@@ -24,4 +32,8 @@ export async function getPlayer(id: number): Promise<PlayerWithStatsDto> {
 
 export async function deletePlayer(id: number): Promise<void> {
   return apiRequest('DELETE', `/players/${id}`);
+}
+
+export async function updatePlayer(id: number, data: UpdatePlayerParams): Promise<PlayerDto> {
+  return apiRequest('PATCH', `/players/${id}`, data);
 }

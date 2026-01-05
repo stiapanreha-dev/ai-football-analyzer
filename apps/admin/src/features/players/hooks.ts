@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { getPlayers, getPlayer, deletePlayer, type GetPlayersParams } from './api';
+import { getPlayers, getPlayer, deletePlayer, updatePlayer, type GetPlayersParams, type UpdatePlayerParams } from './api';
 
 export function usePlayers(params: GetPlayersParams = {}) {
   return useQuery({
@@ -22,6 +22,17 @@ export function useDeletePlayer() {
 
   return useMutation({
     mutationFn: deletePlayer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+    },
+  });
+}
+
+export function useUpdatePlayer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdatePlayerParams }) => updatePlayer(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
     },
