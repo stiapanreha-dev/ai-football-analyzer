@@ -466,9 +466,13 @@ const pdfStyles = `
     display: none !important;
   }
   .pdf-mode .accordion-item {
-    page-break-inside: avoid;
-    break-inside: avoid;
+    page-break-before: always;
+    break-before: always;
     margin-bottom: 15px;
+  }
+  .pdf-mode .accordion-item:first-child {
+    page-break-before: avoid;
+    break-before: avoid;
   }
   .pdf-mode .card {
     page-break-inside: avoid;
@@ -487,6 +491,15 @@ const pdfStyles = `
   .pdf-mode tr {
     page-break-inside: avoid;
     break-inside: avoid;
+  }
+  /* Колонки в PDF делаем вертикальными */
+  .pdf-mode .row {
+    display: block !important;
+  }
+  .pdf-mode .row > [class*="col-"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none !important;
   }
 `;
 
