@@ -1,14 +1,73 @@
 import type { FastifyPluginAsync } from 'fastify';
 
-import type { ApiResponse } from '@archetypes/shared';
+import type { ApiResponse, AdminDto, TelegramLoginResultDto } from '@archetypes/shared';
 
-import { loginBodySchema } from './auth.schemas.js';
+import { loginBodySchema, telegramAuthSchema } from './auth.schemas.js';
 import { createAuthService } from './auth.service.js';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   const authService = createAuthService(fastify);
 
-  // POST /auth/login - Вход тренера
+  // POST /auth/telegram - Вход через Telegram
+  fastify.post<{
+    Reply: ApiResponse<TelegramLoginResultDto>;
+  }>(
+    '/telegram',
+    {
+      schema: {
+        tags: ['auth'],
+        summary: 'Вход через Telegram',
+        body: {
+          type: 'object',
+          required: ['id', 'auth_date', 'hash'],
+          properties: {
+            id: { type: 'number' },
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            username: { type: 'string' },
+            photo_url: { type: 'string' },
+            auth_date: { type: 'number' },
+            hash: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              data: {
+                type: 'object',
+                properties: {
+                  token: { type: 'string' },
+                  admin: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'number' },
+                      telegramId: { type: 'string' },
+                      firstName: { type: 'string', nullable: true },
+                      lastName: { type: 'string', nullable: true },
+                      username: { type: 'string', nullable: true },
+                      photoUrl: { type: 'string', nullable: true },
+                      isActive: { type: 'boolean' },
+                      createdAt: { type: 'string' },
+                      lastLogin: { type: 'string', nullable: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const data = telegramAuthSchema.parse(request.body);
+      const result = await authService.loginWithTelegram(data);
+      return reply.send({ success: true, data: result });
+    }
+  );
+
+  // POST /auth/login - Вход по паролю (legacy)
   fastify.post<{
     Body: { password: string };
     Reply: ApiResponse<{ token: string }>;
@@ -17,7 +76,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     {
       schema: {
         tags: ['auth'],
-        summary: 'Вход тренера',
+        summary: 'Вход тренера (legacy)',
         body: {
           type: 'object',
           required: ['password'],
@@ -64,7 +123,6 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       preHandler: [fastify.authenticate],
     },
     async (_request, reply) => {
-      // JWT токены stateless, клиент должен удалить токен
       return reply.send({
         success: true,
         data: { message: 'Logged out successfully' },
@@ -74,7 +132,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   // GET /auth/me - Текущий пользователь
   fastify.get<{
-    Reply: ApiResponse<{ role: string }>;
+    Reply: ApiResponse<{ role: string; admin?: AdminDto }>;
   }>(
     '/me',
     {
@@ -86,9 +144,19 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       preHandler: [fastify.authenticate],
     },
     async (request, reply) => {
+      const user = request.user as { role: string; telegramId?: string };
+
+      if (user.telegramId) {
+        const admin = await authService.getCurrentAdmin(user.telegramId);
+        return reply.send({
+          success: true,
+          data: { role: user.role, admin: admin ?? undefined },
+        });
+      }
+
       return reply.send({
         success: true,
-        data: { role: request.user.role },
+        data: { role: user.role },
       });
     }
   );

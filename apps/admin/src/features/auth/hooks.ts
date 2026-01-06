@@ -3,7 +3,28 @@ import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '@/shared/lib/useAuth';
 
-import { login as loginApi, logout as logoutApi, getMe } from './api';
+import {
+  login as loginApi,
+  loginTelegram as loginTelegramApi,
+  logout as logoutApi,
+  getMe,
+} from './api';
+import type { TelegramAuthData } from './api';
+
+export function useLoginTelegram() {
+  const navigate = useNavigate();
+  const authLogin = useAuth((state) => state.login);
+  const setAdmin = useAuth((state) => state.setAdmin);
+
+  return useMutation({
+    mutationFn: (data: TelegramAuthData) => loginTelegramApi(data),
+    onSuccess: (data) => {
+      authLogin(data.token);
+      setAdmin(data.admin);
+      navigate('/');
+    },
+  });
+}
 
 export function useLogin() {
   const navigate = useNavigate();
@@ -29,7 +50,6 @@ export function useLogout() {
       navigate('/login');
     },
     onError: () => {
-      // Даже при ошибке разлогиниваем локально
       authLogout();
       navigate('/login');
     },
@@ -38,10 +58,17 @@ export function useLogout() {
 
 export function useCurrentUser() {
   const isAuthenticated = useAuth((state) => state.isAuthenticated);
+  const setAdmin = useAuth((state) => state.setAdmin);
 
   return useQuery({
     queryKey: ['auth', 'me'],
-    queryFn: getMe,
+    queryFn: async () => {
+      const data = await getMe();
+      if (data.admin) {
+        setAdmin(data.admin);
+      }
+      return data;
+    },
     enabled: isAuthenticated,
   });
 }

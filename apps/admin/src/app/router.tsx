@@ -17,6 +17,7 @@ import { PinsPage } from '@/pages/pins/PinsPage';
 import { AuditPage } from '@/pages/audit/AuditPage';
 import { PromptsPage } from '@/pages/prompts/PromptsPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
+import { AdminsPage } from '@/pages/admins/AdminsPage';
 
 const routes: RouteObject[] = [
   {
@@ -86,6 +87,10 @@ const routes: RouteObject[] = [
       {
         path: 'settings',
         element: <SettingsPage />,
+      },
+      {
+        path: 'admins',
+        element: <AdminsPage />,
       },
     ],
   },

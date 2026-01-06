@@ -644,3 +644,48 @@ export interface WaveNotificationPayload {
     language: Language;
   }>;
 }
+
+// =============================================================================
+// Admin DTOs
+// =============================================================================
+
+export interface AdminDto {
+  id: number;
+  telegramId: string;
+  firstName: string | null;
+  lastName: string | null;
+  username: string | null;
+  photoUrl: string | null;
+  isActive: boolean;
+  createdAt: string;
+  lastLogin: string | null;
+}
+
+export interface CreateAdminDto {
+  telegramId: bigint | number;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+}
+
+export interface UpdateAdminDto {
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  isActive?: boolean;
+}
+
+export interface TelegramAuthDto {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
+export interface TelegramLoginResultDto {
+  token: string;
+  admin: AdminDto;
+}

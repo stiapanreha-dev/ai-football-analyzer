@@ -18,8 +18,12 @@ const configSchema = z.object({
   jwtSecret: z.string().min(32),
   jwtExpiresIn: z.string().default('24h'),
 
-  // Coach password
-  coachPassword: z.string().min(8),
+  // Coach password (legacy, will be removed after full migration to Telegram auth)
+  coachPassword: z.string().min(8).optional(),
+
+  // Telegram
+  telegramBotToken: z.string().min(1),
+  initialAdminTelegramId: z.coerce.bigint().optional(),
 
   // External APIs (OpenAI for both STT and LLM)
   openaiApiKey: z.string().min(1),
@@ -38,6 +42,8 @@ function loadConfig(): Config {
     jwtSecret: process.env.JWT_SECRET,
     jwtExpiresIn: process.env.JWT_EXPIRES_IN,
     coachPassword: process.env.COACH_PASSWORD,
+    telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
+    initialAdminTelegramId: process.env.INITIAL_ADMIN_TELEGRAM_ID,
     openaiApiKey: process.env.OPENAI_API_KEY,
   });
 

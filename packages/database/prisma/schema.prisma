@@ -373,3 +373,18 @@ model AuditLog {
   @@index([action])
   @@map("audit_logs")
 }
+
+/// Администратор системы (авторизация через Telegram)
+model Admin {
+  id         Int       @id @default(autoincrement())
+  telegramId BigInt    @unique @map("telegram_id")
+  firstName  String?   @map("first_name")
+  lastName   String?   @map("last_name")
+  username   String?
+  photoUrl   String?   @map("photo_url")
+  isActive   Boolean   @default(true) @map("is_active")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  lastLogin  DateTime? @map("last_login")
+
+  @@map("admins")
+}

@@ -1,23 +1,18 @@
-import { useState } from 'react';
-import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Card, Alert, Spinner } from 'react-bootstrap';
 import { Navigate } from 'react-router-dom';
 
 import { useAuth } from '@/shared/lib/useAuth';
-import { useLogin } from '@/features/auth/hooks';
+import { useLoginTelegram } from '@/features/auth/hooks';
+import { TelegramLoginButton } from '@/features/auth/TelegramLoginButton';
+import { config } from '@/shared/config';
 
 export function LoginPage() {
-  const [password, setPassword] = useState('');
   const isAuthenticated = useAuth((state) => state.isAuthenticated);
-  const loginMutation = useLogin();
+  const loginMutation = useLoginTelegram();
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    loginMutation.mutate(password);
-  };
 
   return (
     <Container className="d-flex align-items-center justify-content-center vh-100 bg-light">
@@ -30,32 +25,31 @@ export function LoginPage() {
 
           {loginMutation.isError && (
             <Alert variant="danger" className="mb-3">
-              Неверный пароль
+              {loginMutation.error instanceof Error
+                ? loginMutation.error.message
+                : 'Ошибка авторизации. Убедитесь, что вы добавлены как администратор.'}
             </Alert>
           )}
 
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Пароль</Form.Label>
-              <Form.Control
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Введите пароль тренера"
-                required
-                autoFocus
+          {loginMutation.isPending ? (
+            <div className="text-center py-4">
+              <Spinner animation="border" variant="primary" />
+              <p className="mt-2 text-muted">Авторизация...</p>
+            </div>
+          ) : (
+            <div className="d-flex flex-column align-items-center gap-3">
+              <p className="text-muted mb-2">
+                Войдите через Telegram для доступа к панели управления
+              </p>
+              <TelegramLoginButton
+                botName={config.telegramBotName}
+                onAuth={(data) => loginMutation.mutate(data)}
+                buttonSize="large"
+                cornerRadius={8}
+                showUserPic={true}
               />
-            </Form.Group>
-
-            <Button
-              variant="primary"
-              type="submit"
-              className="w-100"
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending ? 'Вход...' : 'Войти'}
-            </Button>
-          </Form>
+            </div>
+          )}
         </Card.Body>
       </Card>
     </Container>

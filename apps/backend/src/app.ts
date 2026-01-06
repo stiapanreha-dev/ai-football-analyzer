@@ -22,6 +22,10 @@ import { auditRoutes } from './modules/audit/audit.routes.js';
 import promptsRoutes from './modules/prompts/prompt.routes.js';
 import sttRoutes from './services/stt/stt.routes.js';
 import teamsRoutes from './modules/teams/team.routes.js';
+import adminsRoutes from './modules/admins/admin.routes.js';
+
+// Services
+import { createAdminService } from './modules/admins/admin.service.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -70,9 +74,14 @@ export async function buildApp() {
       await api.register(auditRoutes, { prefix: '/audit' });
       await api.register(promptsRoutes, { prefix: '/prompts' });
       await api.register(sttRoutes, { prefix: '/stt' });
+      await api.register(adminsRoutes, { prefix: '/admins' });
     },
     { prefix: '/api/v1' }
   );
+
+  // Initialize first admin from env variable if no admins exist
+  const adminService = createAdminService(app);
+  await adminService.ensureInitialAdmin();
 
   return app;
 }
