@@ -48,6 +48,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
                       lastName: { type: 'string', nullable: true },
                       username: { type: 'string', nullable: true },
                       photoUrl: { type: 'string', nullable: true },
+                      role: { type: 'string' },
                       isActive: { type: 'boolean' },
                       createdAt: { type: 'string' },
                       lastLogin: { type: 'string', nullable: true },
