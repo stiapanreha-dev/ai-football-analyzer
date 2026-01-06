@@ -1,16 +1,20 @@
 import { z } from 'zod';
 
+export const adminRoleSchema = z.enum(['admin', 'user']);
+
 export const createAdminSchema = z.object({
   telegramId: z.coerce.bigint(),
   firstName: z.string().min(1).max(100).optional(),
   lastName: z.string().min(1).max(100).optional(),
   username: z.string().min(1).max(100).optional(),
+  role: adminRoleSchema.optional(),
 });
 
 export const updateAdminSchema = z.object({
   firstName: z.string().min(1).max(100).optional(),
   lastName: z.string().min(1).max(100).optional(),
   username: z.string().min(1).max(100).optional(),
+  role: adminRoleSchema.optional(),
   isActive: z.boolean().optional(),
 });
 

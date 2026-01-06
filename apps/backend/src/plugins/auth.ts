@@ -8,13 +8,14 @@ import { UnauthorizedError } from '../utils/errors.js';
 declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requireAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { role: 'admin' | 'coach'; adminId?: number; telegramId?: string };
-    user: { role: 'admin' | 'coach'; adminId?: number; telegramId?: string };
+    payload: { role: 'admin' | 'user' | 'coach'; adminId?: number; telegramId?: string };
+    user: { role: 'admin' | 'user' | 'coach'; adminId?: number; telegramId?: string };
   }
 }
 
@@ -31,6 +32,18 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
       await request.jwtVerify();
     } catch {
       throw new UnauthorizedError('Invalid or expired token');
+    }
+  });
+
+  fastify.decorate('requireAdmin', async (request: FastifyRequest, _reply: FastifyReply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      throw new UnauthorizedError('Invalid or expired token');
+    }
+
+    if (request.user.role !== 'admin') {
+      throw new UnauthorizedError('Admin access required');
     }
   });
 

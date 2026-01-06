@@ -1,7 +1,7 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 
 import { Layout } from '@/shared/ui/Layout';
-import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
+import { ProtectedRoute, AdminOnlyRoute } from '@/features/auth/ProtectedRoute';
 
 import { LoginPage } from '@/pages/login/LoginPage';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
@@ -78,19 +78,35 @@ const routes: RouteObject[] = [
       },
       {
         path: 'audit',
-        element: <AuditPage />,
+        element: (
+          <AdminOnlyRoute>
+            <AuditPage />
+          </AdminOnlyRoute>
+        ),
       },
       {
         path: 'prompts',
-        element: <PromptsPage />,
+        element: (
+          <AdminOnlyRoute>
+            <PromptsPage />
+          </AdminOnlyRoute>
+        ),
       },
       {
         path: 'settings',
-        element: <SettingsPage />,
+        element: (
+          <AdminOnlyRoute>
+            <SettingsPage />
+          </AdminOnlyRoute>
+        ),
       },
       {
         path: 'admins',
-        element: <AdminsPage />,
+        element: (
+          <AdminOnlyRoute>
+            <AdminsPage />
+          </AdminOnlyRoute>
+        ),
       },
     ],
   },

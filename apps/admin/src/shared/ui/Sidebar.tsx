@@ -14,10 +14,13 @@ import {
   FaUserShield,
 } from 'react-icons/fa';
 
+import { useAuth } from '@/shared/lib/useAuth';
+
 interface NavItem {
   path: string;
   label: string;
   icon: ReactNode;
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -27,13 +30,18 @@ const navItems: NavItem[] = [
   { path: '/sessions', label: 'Сессии', icon: <FaPlay /> },
   { path: '/reports', label: 'Отчёты', icon: <FaFileAlt /> },
   { path: '/pins', label: 'PIN-коды', icon: <FaKey /> },
-  { path: '/prompts', label: 'Промпты', icon: <FaRobot /> },
-  { path: '/audit', label: 'Аудит лог', icon: <FaClipboardList /> },
-  { path: '/admins', label: 'Администраторы', icon: <FaUserShield /> },
-  { path: '/settings', label: 'Настройки', icon: <FaCog /> },
+  { path: '/prompts', label: 'Промпты', icon: <FaRobot />, adminOnly: true },
+  { path: '/audit', label: 'Аудит лог', icon: <FaClipboardList />, adminOnly: true },
+  { path: '/admins', label: 'Администраторы', icon: <FaUserShield />, adminOnly: true },
+  { path: '/settings', label: 'Настройки', icon: <FaCog />, adminOnly: true },
 ];
 
 export function Sidebar() {
+  const isAdmin = useAuth((state) => state.isAdmin);
+  const isAdminRole = isAdmin();
+
+  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdminRole);
+
   return (
     <div
       className="bg-dark text-white p-3 d-flex flex-column"
@@ -44,7 +52,7 @@ export function Sidebar() {
       </div>
 
       <Nav className="flex-column flex-grow-1">
-        {navItems.map((item) => (
+        {visibleItems.map((item) => (
           <Nav.Link
             key={item.path}
             as={NavLink}

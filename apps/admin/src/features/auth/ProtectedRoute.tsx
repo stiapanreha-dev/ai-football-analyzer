@@ -16,3 +16,23 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   return <>{children}</>;
 }
+
+interface AdminOnlyRouteProps {
+  children: React.ReactNode;
+}
+
+export function AdminOnlyRoute({ children }: AdminOnlyRouteProps) {
+  const isAuthenticated = useAuth((state) => state.isAuthenticated);
+  const isAdmin = useAuth((state) => state.isAdmin);
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (!isAdmin()) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}

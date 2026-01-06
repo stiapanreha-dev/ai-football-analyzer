@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 
 import type { FastifyInstance } from 'fastify';
 
-import type { AdminDto, TelegramLoginResultDto } from '@archetypes/shared';
+import type { AdminDto, AdminRole, TelegramLoginResultDto } from '@archetypes/shared';
 
 import { config } from '../../config.js';
 import { UnauthorizedError } from '../../utils/errors.js';
@@ -10,7 +10,7 @@ import { UnauthorizedError } from '../../utils/errors.js';
 import type { TelegramAuthBody } from './auth.schemas.js';
 
 interface JWTPayload {
-  role: 'admin';
+  role: AdminRole;
   adminId: number;
   telegramId: string;
 }
@@ -70,7 +70,7 @@ export class AuthService {
     });
 
     const payload: JWTPayload = {
-      role: 'admin',
+      role: updatedAdmin.role,
       adminId: admin.id,
       telegramId: telegramId.toString(),
     };
@@ -84,6 +84,7 @@ export class AuthService {
       lastName: updatedAdmin.lastName,
       username: updatedAdmin.username,
       photoUrl: updatedAdmin.photoUrl,
+      role: updatedAdmin.role,
       isActive: updatedAdmin.isActive,
       createdAt: updatedAdmin.createdAt.toISOString(),
       lastLogin: updatedAdmin.lastLogin?.toISOString() ?? null,
@@ -117,6 +118,7 @@ export class AuthService {
       lastName: admin.lastName,
       username: admin.username,
       photoUrl: admin.photoUrl,
+      role: admin.role,
       isActive: admin.isActive,
       createdAt: admin.createdAt.toISOString(),
       lastLogin: admin.lastLogin?.toISOString() ?? null,

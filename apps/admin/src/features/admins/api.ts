@@ -1,5 +1,7 @@
 import { apiRequest } from '@/shared/api/client';
 
+export type AdminRole = 'admin' | 'user';
+
 export interface AdminDto {
   id: number;
   telegramId: string;
@@ -7,6 +9,7 @@ export interface AdminDto {
   lastName: string | null;
   username: string | null;
   photoUrl: string | null;
+  role: AdminRole;
   isActive: boolean;
   createdAt: string;
   lastLogin: string | null;
@@ -17,6 +20,7 @@ export interface CreateAdminDto {
   firstName?: string;
   lastName?: string;
   username?: string;
+  role?: AdminRole;
 }
 
 export interface PaginatedResponse<T> {

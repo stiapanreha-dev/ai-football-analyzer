@@ -87,6 +87,11 @@ enum TestWaveStatus {
   cancelled  // Отменена
 }
 
+enum AdminRole {
+  admin // Полный доступ ко всем разделам
+  user  // Ограниченный доступ (без Администраторы, Аудит, Настройки, Промпты)
+}
+
 // =============================================================================
 // MODELS
 // =============================================================================
@@ -382,6 +387,7 @@ model Admin {
   lastName   String?   @map("last_name")
   username   String?
   photoUrl   String?   @map("photo_url")
+  role       AdminRole @default(user)
   isActive   Boolean   @default(true) @map("is_active")
   createdAt  DateTime  @default(now()) @map("created_at")
   lastLogin  DateTime? @map("last_login")

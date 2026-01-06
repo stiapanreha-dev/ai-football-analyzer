@@ -13,11 +13,18 @@ import {
 
 import { useAuth } from '@/shared/lib/useAuth';
 import { useAdmins, useCreateAdmin, useDeleteAdmin } from '@/features/admins/hooks';
+import type { AdminRole } from '@/features/admins/api';
+
+const ROLE_LABELS: Record<AdminRole, string> = {
+  admin: 'Администратор',
+  user: 'Пользователь',
+};
 
 export function AdminsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState<number | null>(null);
   const [newTelegramId, setNewTelegramId] = useState('');
+  const [newRole, setNewRole] = useState<AdminRole>('user');
 
   const currentAdmin = useAuth((state) => state.admin);
   const { data, isLoading, error } = useAdmins();
@@ -29,9 +36,10 @@ export function AdminsPage() {
     if (!newTelegramId.trim()) return;
 
     try {
-      await createMutation.mutateAsync({ telegramId: newTelegramId.trim() });
+      await createMutation.mutateAsync({ telegramId: newTelegramId.trim(), role: newRole });
       setShowAddModal(false);
       setNewTelegramId('');
+      setNewRole('user');
     } catch {
       // Error will be shown via mutation state
     }
@@ -78,9 +86,9 @@ export function AdminsPage() {
   return (
     <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 mb-0">Администраторы</h1>
+        <h1 className="h3 mb-0">Пользователи</h1>
         <Button variant="primary" onClick={() => setShowAddModal(true)}>
-          Добавить администратора
+          Добавить пользователя
         </Button>
       </div>
 
@@ -92,6 +100,7 @@ export function AdminsPage() {
               <th>Telegram ID</th>
               <th>Имя</th>
               <th>Username</th>
+              <th>Роль</th>
               <th>Статус</th>
               <th>Последний вход</th>
               <th>Создан</th>
@@ -120,6 +129,11 @@ export function AdminsPage() {
                 </td>
                 <td>{admin.username ? `@${admin.username}` : '-'}</td>
                 <td>
+                  <Badge bg={admin.role === 'admin' ? 'primary' : 'info'}>
+                    {ROLE_LABELS[admin.role]}
+                  </Badge>
+                </td>
+                <td>
                   <Badge bg={admin.isActive ? 'success' : 'secondary'}>
                     {admin.isActive ? 'Активен' : 'Неактивен'}
                   </Badge>
@@ -141,7 +155,7 @@ export function AdminsPage() {
             ))}
             {data?.items.length === 0 && (
               <tr>
-                <td colSpan={8} className="text-center text-muted py-4">
+                <td colSpan={9} className="text-center text-muted py-4">
                   Нет администраторов
                 </td>
               </tr>
@@ -153,7 +167,7 @@ export function AdminsPage() {
       {/* Add Admin Modal */}
       <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Добавить администратора</Modal.Title>
+          <Modal.Title>Добавить пользователя</Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleAddAdmin}>
           <Modal.Body>
@@ -161,10 +175,10 @@ export function AdminsPage() {
               <Alert variant="danger">
                 {createMutation.error instanceof Error
                   ? createMutation.error.message
-                  : 'Ошибка при добавлении администратора'}
+                  : 'Ошибка при добавлении пользователя'}
               </Alert>
             )}
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Telegram ID</Form.Label>
               <Form.Control
                 type="text"
@@ -175,6 +189,19 @@ export function AdminsPage() {
               />
               <Form.Text className="text-muted">
                 Telegram ID можно получить у бота @userinfobot или через настройки бота
+              </Form.Text>
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Роль</Form.Label>
+              <Form.Select
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value as AdminRole)}
+              >
+                <option value="user">Пользователь (ограниченный доступ)</option>
+                <option value="admin">Администратор (полный доступ)</option>
+              </Form.Select>
+              <Form.Text className="text-muted">
+                Пользователь не имеет доступа к разделам: Администраторы, Аудит лог, Настройки, Промпты
               </Form.Text>
             </Form.Group>
           </Modal.Body>

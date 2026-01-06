@@ -64,14 +64,16 @@ export const auditRoutes: FastifyPluginAsync = async (app) => {
     }
   );
 
-  // GET /audit - получить список событий
+  // GET /audit - получить список событий (только для админов)
   app.get(
     '/',
     {
       schema: {
         tags: ['Audit'],
         summary: 'Get audit logs',
+        security: [{ bearerAuth: [] }],
       },
+      preHandler: [app.requireAdmin],
     },
     async (request) => {
       const query = getAuditLogsQuerySchema.parse(request.query);
@@ -79,14 +81,16 @@ export const auditRoutes: FastifyPluginAsync = async (app) => {
     }
   );
 
-  // GET /audit/stats - получить статистику
+  // GET /audit/stats - получить статистику (только для админов)
   app.get(
     '/stats',
     {
       schema: {
         tags: ['Audit'],
         summary: 'Get audit statistics',
+        security: [{ bearerAuth: [] }],
       },
+      preHandler: [app.requireAdmin],
     },
     async (request) => {
       const query = getStatsQuerySchema.parse(request.query);

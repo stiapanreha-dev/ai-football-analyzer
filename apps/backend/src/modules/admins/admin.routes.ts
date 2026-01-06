@@ -31,7 +31,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
           },
         },
       },
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.requireAdmin],
     },
     async (request, reply) => {
       const query = getAdminsQuerySchema.parse(request.query);
@@ -59,7 +59,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
           },
         },
       },
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.requireAdmin],
     },
     async (request, reply) => {
       const { id } = getAdminParamsSchema.parse(request.params);
@@ -86,10 +86,11 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
             firstName: { type: 'string' },
             lastName: { type: 'string' },
             username: { type: 'string' },
+            role: { type: 'string', enum: ['admin', 'user'] },
           },
         },
       },
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.requireAdmin],
     },
     async (request, reply) => {
       const data = createAdminSchema.parse(request.body);
@@ -116,7 +117,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
           },
         },
       },
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.requireAdmin],
     },
     async (request, reply) => {
       const { id } = getAdminParamsSchema.parse(request.params);

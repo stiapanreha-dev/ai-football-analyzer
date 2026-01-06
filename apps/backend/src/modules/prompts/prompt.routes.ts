@@ -7,7 +7,7 @@ import { createPromptService } from './prompt.service.js';
 const promptsRoutes: FastifyPluginAsync = async (fastify) => {
   const promptService = createPromptService(fastify);
 
-  // GET /prompts - Список всех промптов (защищённый)
+  // GET /prompts - Список всех промптов (только для админов)
   fastify.get<{
     Reply: ApiResponse<PromptDto[]>;
   }>(
@@ -18,7 +18,7 @@ const promptsRoutes: FastifyPluginAsync = async (fastify) => {
         summary: 'Список всех промптов',
         security: [{ bearerAuth: [] }],
       },
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.requireAdmin],
     },
     async (_request, reply) => {
       const prompts = await promptService.findAll();
@@ -30,7 +30,7 @@ const promptsRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
-  // GET /prompts/:key - Получение конкретного промпта (защищённый)
+  // GET /prompts/:key - Получение конкретного промпта (только для админов)
   fastify.get<{
     Params: { key: string };
     Reply: ApiResponse<PromptDto>;
@@ -42,7 +42,7 @@ const promptsRoutes: FastifyPluginAsync = async (fastify) => {
         summary: 'Получение промпта по ключу',
         security: [{ bearerAuth: [] }],
       },
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.requireAdmin],
     },
     async (request, reply) => {
       const { key } = getPromptParamsSchema.parse(request.params);
@@ -55,7 +55,7 @@ const promptsRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
-  // PUT /prompts/:key - Обновление промпта (защищённый)
+  // PUT /prompts/:key - Обновление промпта (только для админов)
   fastify.put<{
     Params: { key: string };
     Body: { value: string };
@@ -68,7 +68,7 @@ const promptsRoutes: FastifyPluginAsync = async (fastify) => {
         summary: 'Обновление промпта',
         security: [{ bearerAuth: [] }],
       },
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.requireAdmin],
     },
     async (request, reply) => {
       const { key } = getPromptParamsSchema.parse(request.params);
@@ -82,7 +82,7 @@ const promptsRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
-  // POST /prompts/:key/test - Тестирование промпта (защищённый)
+  // POST /prompts/:key/test - Тестирование промпта (только для админов)
   fastify.post<{
     Params: { key: string };
     Body: { template: string };
@@ -95,7 +95,7 @@ const promptsRoutes: FastifyPluginAsync = async (fastify) => {
         summary: 'Тестирование промпта с генерацией примера',
         security: [{ bearerAuth: [] }],
       },
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.requireAdmin],
     },
     async (request, reply) => {
       const { key } = getPromptParamsSchema.parse(request.params);

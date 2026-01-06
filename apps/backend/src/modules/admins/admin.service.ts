@@ -26,6 +26,7 @@ export class AdminService {
         firstName: data.firstName,
         lastName: data.lastName,
         username: data.username,
+        role: data.role ?? 'user',
       },
     });
 
@@ -93,6 +94,7 @@ export class AdminService {
         firstName: data.firstName,
         lastName: data.lastName,
         username: data.username,
+        role: data.role,
         isActive: data.isActive,
       },
     });
@@ -147,6 +149,7 @@ export class AdminService {
     await this.app.prisma.admin.create({
       data: {
         telegramId: config.initialAdminTelegramId,
+        role: 'admin',
       },
     });
 
@@ -165,6 +168,7 @@ export class AdminService {
       lastName: admin.lastName,
       username: admin.username,
       photoUrl: admin.photoUrl,
+      role: admin.role,
       isActive: admin.isActive,
       createdAt: admin.createdAt.toISOString(),
       lastLogin: admin.lastLogin?.toISOString() ?? null,
