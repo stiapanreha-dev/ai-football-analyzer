@@ -51,6 +51,15 @@ export class AuthService {
     });
 
     if (!admin) {
+      this.app.log.warn(
+        {
+          telegramId: telegramId.toString(),
+          firstName: data.first_name,
+          lastName: data.last_name,
+          username: data.username,
+        },
+        'Unauthorized admin login attempt'
+      );
       throw new UnauthorizedError('You are not authorized as admin');
     }
 
